@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Business Suite</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-dark: #0a0a0a;
+            --secondary-dark: #1a1a1a;
+            --accent-red: #ff2e2e;
+            --accent-red-light: #ff6b6b;
+            --cream: #f8f4e5;
+            --cream-light: #fffdf5;
+            --gold: #ffd700;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --gradient: linear-gradient(135deg, var(--accent-red) 0%, var(--accent-red-light) 100%);
+        }
+        .logout-button {
+            background-color: #e74c3c;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+            .logout-button:hover {
+                background-color: #c0392b;
+            }
+
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--primary-dark);
+            color: var(--cream);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Loading Animation */
+        .loading-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: var(--gradient);
+            z-index: 9999;
+            animation: loading 2s ease-in-out;
+        }
+
+        @keyframes loading {
+            0% { width: 0%; }
+            50% { width: 70%; }
+            100% { width: 100%; opacity: 0; }
+        }
+
+        /* Layout Principal */
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+            opacity: 0;
+            animation: fadeIn 0.8s ease-out 0.5s forwards;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        /* Sidebar Modern */
+        .sidebar {
+            width: 280px;
+            background: var(--secondary-dark);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            position: fixed;
+            height: 100vh;
+            z-index: 1000;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            left: 0;
+        }
+
+        .sidebar-closed {
+            transform: translateX(-100%);
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 2rem 1.5rem 1rem;
+            border-bottom: 2px solid var(--accent-red);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logo-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient);
+            opacity: 0.1;
+            transition: var(--transition);
+        }
+
+        .logo-container:hover::before {
+            left: 0;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 800;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo-subtitle {
+            font-size: 0.9rem;
+            color: var(--cream);
+            opacity: 0.7;
+            margin-top: 0.5rem;
+        }
+
+        /* Navigație */
+        .nav-section {
+            margin-bottom: 2rem;
+            padding: 0 1.5rem;
+        }
+
+        .nav-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent-red);
+            margin-bottom: 1rem;
+            padding-left: 1rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            margin-bottom: 0.5rem;
+            border-radius: 12px;
+            color: var(--cream);
+            text-decoration: none;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            left: -100%;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient);
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .nav-item:hover::before {
+            left: 0;
+            opacity: 0.1;
+        }
+
+        .nav-item.active {
+            background: rgba(255, 46, 46, 0.1);
+            border-left: 4px solid var(--accent-red);
+        }
+
+        .nav-item i {
+            margin-right: 1rem;
+            font-size: 1.2rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-item span {
+            position: relative;
+            z-index: 1;
+        }
+        .nav-item a.nav-link {
+            text-decoration: none;  /* elimină sublinierea */
+            color: inherit;         /* ia culoarea din .nav-item, aici var(--cream) */
+            display: flex;          /* păstrează alinierea icon + text */
+            align-items: center;
+            gap: 8px;               /* spațiu între icon și text */
+        }
+
+        .nav-item a.nav-link:hover {
+            color: var(--accent-red); /* sau orice culoare vrei la hover */
+            text-decoration: none;    /* sublinierea tot să fie eliminată */
+        }
+
+
+        /* Conținut Principal */
+        .main-content {
+            flex: 1;
+            padding: 3rem;
+            transition: var(--transition);
+            width: 100%;
+            margin-left: 0;
+        }
+
+        .main-content-sidebar-open {
+            margin-left: 280px;
+            width: calc(100% - 280px);
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .welcome-section h1 {
+            font-size: 2.8rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, var(--cream), var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .welcome-section .company-name {
+            font-size: 1.4rem;
+            color: var(--accent-red);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .welcome-section p {
+            color: var(--cream);
+            opacity: 0.7;
+            font-size: 1.1rem;
+        }
+
+        .date-display {
+            background: var(--secondary-dark);
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .date {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--cream);
+        }
+
+        .time {
+            font-size: 2rem;
+            font-weight: 300;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-top: 0.5rem;
+        }
+
+        .sidebar-toggle {
+            background: var(--gradient);
+            border: none;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+            margin-right: 1rem;
+        }
+
+        .sidebar-toggle:hover {
+            transform: scale(1.05);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+
+        /* Quick Stats */
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-item {
+            background: var(--secondary-dark);
+            padding: 1.5rem;
+            border-radius: 15px;
+            text-align: center;
+            transition: var(--transition);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .stat-item:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--cream);
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+
+        /* Efecte Speciale */
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .floating-element {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--accent-red);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            33% { transform: translateY(-30px) rotate(120deg); }
+            66% { transform: translateY(15px) rotate(240deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 250px;
+            }
+            .main-content-sidebar-open {
+                margin-left: 250px;
+                width: calc(100% - 250px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+            }
+            .main-content-sidebar-open {
+                margin-left: 0;
+                width: 100%;
+            }
+            .header {
+                flex-direction: column;
+                gap: 2rem;
+                text-align: center;
+            }
+            .header-left {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+
+        /* Notification Badge */
+        .notification-badge {
+            background: var(--accent-red);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        /* Animations */
+        @keyframes slideInUp {
+            to { 
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Bar -->
+    <div class="loading-bar"></div>
+
+    <!-- Floating Background Elements -->
+    <div class="floating-elements" id="floatingElements"></div>
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="logo-container">
+                <div class="logo">{{user.denumire}}</div>
+                <div class="logo-subtitle">Business Suite</div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-title">PRINCIPAL</div>
+                <div class="nav-item active">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-book"></i>
+                    <span>Registru</span>
+                </div>
+                <div class="nav-item">
+                    <a href="{% url 'dashboard_firma_jurnal' %}" class="nav-link">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Jurnal</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Rapoarte</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Statistici</span>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-title">CONTABILITATE</div>
+                <div class="nav-item">
+                    <i class="fas fa-balance-scale"></i>
+                    <span>Bilanț</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-receipt"></i>
+                    <span>Chitanțe</span>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-title">OPERATIUNI</div>
+                <div class="nav-item">
+                    <i class="fas fa-file-invoice"></i>
+                    <span>Facturi</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-calculator"></i>
+                    <span>Calcule</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-database"></i>
+                    <span>Arhivă</span>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-title">FIRMĂ</div>
+                <div class="nav-item">
+                    <i class="fas fa-building"></i>
+                    <span>Profil Firmă</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-users"></i>
+                    <span>Angajați</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Setări</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content main-content-sidebar-open" id="mainContent">
+            <!-- Header -->
+            <div class="header">
+                <div class="header-left">
+                    <button class="sidebar-toggle" id="sidebarToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="welcome-section">
+                        <h1>Bun venit!</h1>
+                        <div class="company-name" id="companyName">{{user.denumire}}</div>
+                        <p>Contabilitate și management financiar integrat</p>
+                    </div>
+                </div>
+                <div class="date-display">
+                    <div class="date" id="currentDate">Luni, 15 Decembrie 2024</div>
+                    <div class="time" id="currentTime">14:30:45</div>
+                </div>
+                <div class="header-actions">
+                    <a href="{% url 'logout' %}" class="logout-button">Delogare</a>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="quick-stats">
+                <div class="stat-item">
+                    <div class="stat-number">24</div>
+                    <div class="stat-label">Facturi Luna Curentă</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">₡12,458</div>
+                    <div class="stat-label">Venit Total</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">₡8,230</div>
+                    <div class="stat-label">Cheltuieli</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">₡4,228</div>
+                    <div class="stat-label">Profit Net</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const mainContent = document.getElementById("mainContent");
+        const navItems = document.querySelectorAll(".nav-item");
+        const welcomeText = document.querySelector('.welcome-section h1');
+        const originalText = welcomeText ? welcomeText.textContent : '';
+
+        // ─────────────── 1️⃣ Data și ora ───────────────
+        function updateDateTime() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const dateStr = now.toLocaleDateString('ro-RO', options);
+            const timeStr = now.toLocaleTimeString('ro-RO');
+            const dateEl = document.getElementById('currentDate');
+            const timeEl = document.getElementById('currentTime');
+            if(dateEl) dateEl.textContent = dateStr;
+            if(timeEl) timeEl.textContent = timeStr;
+        }
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+
+        // ─────────────── 2️⃣ Elemente flotante ───────────────
+        const container = document.getElementById('floatingElements');
+        if(container){
+            for (let i = 0; i < 20; i++) {
+                const element = document.createElement('div');
+                element.className = 'floating-element';
+                element.style.left = Math.random() * 100 + '%';
+                element.style.top = Math.random() * 100 + '%';
+                element.style.animationDelay = Math.random() * 6 + 's';
+                element.style.animationDuration = (4 + Math.random() * 4) + 's';
+                container.appendChild(element);
+            }
+        }
+
+        // ─────────────── 3️⃣ Sidebar toggle ───────────────
+        const sidebar = document.getElementById('sidebar');
+        const toggleButton = document.getElementById('sidebarToggle');
+        let isSidebarOpen = true;
+        if(toggleButton && sidebar){
+            toggleButton.addEventListener('click', function() {
+                isSidebarOpen = !isSidebarOpen;
+                sidebar.classList.toggle('sidebar-closed', !isSidebarOpen);
+                mainContent.classList.toggle('main-content-sidebar-open', isSidebarOpen);
+            });
+        }
+
+
+        // ─────────────── 5️⃣ Notificări vizuale ───────────────
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: var(--gradient);
+                color: white;
+                padding: 1rem 2rem;
+                border-radius: 10px;
+                z-index: 10000;
+                animation: slideInRight 0.3s ease-out;
+                box-shadow: var(--shadow);
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.style.animation = 'slideOutRight 0.3s ease-out forwards';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+            @keyframes slideOutRight { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+        `;
+        document.head.appendChild(style);
+
+        // ─────────────── 6️⃣ Click pe sidebar (fără fetch) ───────────────
+        navItems.forEach(item => {
+            item.addEventListener("click", function() {
+                if(this.id !== 'jurnalLink') {
+                    navItems.forEach(i => i.classList.remove("active"));
+                    this.classList.add("active");
+
+                    const text = item.querySelector("span").innerText.trim();
+                    showNotification(`Accesat: ${text}`);
+                }
+            });
+        });
+
+        // ─────────────── 7️⃣ Efect tipar pentru mesajul de bun venit ───────────────
+        if(welcomeText){
+            welcomeText.textContent = '';
+            let i = 0;
+            function typeWriter() {
+                if (i < originalText.length) {
+                    welcomeText.textContent += originalText.charAt(i);
+                    i++;
+                    setTimeout(typeWriter, 100);
+                }
+            }
+            setTimeout(typeWriter, 1500);
+        }
+    });
+    </script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,372 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Înregistrare Firmă - Decorsoft</title>
+    <link rel="stylesheet" href="{% static 'main/css/admin_dashboard.css' %}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* === FORM SECTION STYLES === */
+        .form-section {
+            background: linear-gradient(135deg, rgba(26, 26, 26, 0.8), rgba(10, 10, 10, 0.9));
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(220, 38, 38, 0.1);
+            backdrop-filter: blur(10px);
+            margin-top: 20px;
+        }
+
+        .firma-form {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--cream);
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .required {
+            color: #ef4444;
+            margin-left: 4px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 15px 20px;
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--cream);
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #ef4444;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: rgba(245, 245, 240, 0.6);
+        }
+
+        .field-errors {
+            margin-top: 8px;
+        }
+
+        .error {
+            color: #fecaca;
+            font-size: 0.9rem;
+            margin: 5px 0;
+            padding: 8px 12px;
+            background: rgba(220, 38, 38, 0.2);
+            border-radius: 6px;
+            border-left: 3px solid #ef4444;
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+
+        .form-buttons button,
+        .form-buttons a {
+            flex: 1;
+            min-width: 200px;
+            text-align: center;
+            padding: 18px 30px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .form-buttons button.green {
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            color: var(--cream);
+            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.3);
+        }
+
+        .form-buttons button.green:hover {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
+        }
+
+        .form-buttons a.gray {
+            background: linear-gradient(135deg, #404040, #2d2d2d);
+            color: var(--cream);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-buttons a.gray:hover {
+            background: linear-gradient(135deg, #4a4a4a, #363636);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .form-section {
+                padding: 25px 20px;
+                margin: 15px 0;
+            }
+
+            .form-buttons {
+                flex-direction: column;
+            }
+
+            .form-buttons button,
+            .form-buttons a {
+                min-width: 100%;
+            }
+        }
+
+        /* Floating elements for background */
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .floating-element {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, #dc2626, transparent);
+            opacity: 0.03;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        .floating-element:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .floating-element:nth-child(2) {
+            width: 200px;
+            height: 200px;
+            top: 60%;
+            right: 10%;
+            animation-delay: 2s;
+        }
+
+        .floating-element:nth-child(3) {
+            width: 150px;
+            height: 150px;
+            bottom: 20%;
+            left: 20%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        /* CSS Variables */
+        :root {
+            --black: #0a0a0a;
+            --dark-gray: #1a1a1a;
+            --medium-gray: #2d2d2d;
+            --light-gray: #404040;
+            --cream: #f5f5f0;
+            --light-cream: #fafaf5;
+            --red: #dc2626;
+            --dark-red: #991b1b;
+            --light-red: #ef4444;
+            --accent-red: #ff4444;
+            --white: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating Background Elements -->
+    <div class="floating-elements">
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+    </div>
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>Decorsoft Admin</h2>
+                <p>Control Panel</p>
+            </div>
+            <ul class="nav-links">
+                <li><a href="{% url 'admin_dashboard' %}"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li><a href="#"><i class="fas fa-building"></i> Firme</a></li>
+                <li><a href="#"><i class="fas fa-users"></i> Utilizatori</a></li>
+                <li><a href="#"><i class="fas fa-chart-bar"></i> Rapoarte</a></li>
+                <li><a href="#"><i class="fas fa-cog"></i> Setări</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <div>
+                    <h1>Înregistrare Firmă Nouă</h1>
+                    <p>Bun venit, <strong>{{ user.username }}</strong>!</p>
+                </div>
+                <div class="user-info">
+                    <div class="user-avatar">
+                        {{ user.username|first|upper }}
+                    </div>
+                    <span>{{ user.email }}</span>
+                    <a href="{% url 'admin_logout' %}" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+
+            <!-- Mesaje -->
+            <div class="messages">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <!-- Formular de înregistrare -->
+            <div class="form-section">
+                <form method="post" class="firma-form">
+                    {% csrf_token %}
+                    
+                    {% for field in form %}
+                        <div class="form-group">
+                            <label for="{{ field.id_for_label }}">
+                                {{ field.label }}
+                                {% if field.field.required %}
+                                    <span class="required">*</span>
+                                {% endif %}
+                            </label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="field-errors">
+                                    {% for error in field.errors %}
+                                        <p class="error">{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            {% if field.help_text %}
+                                <small style="color: rgba(245, 245, 240, 0.6); font-size: 0.85rem; margin-top: 5px; display: block;">
+                                    {{ field.help_text }}
+                                </small>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    
+                    <div class="form-buttons">
+                        <button type="submit" class="green">
+                            <i class="fas fa-check"></i> Salvează Firmă
+                        </button>
+                        <a href="{% url 'admin_dashboard' %}" class="gray">
+                            <i class="fas fa-arrow-left"></i> Înapoi la Dashboard
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced form interactions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add focus effects to form fields
+            const formFields = document.querySelectorAll('.form-group input, .form-group select, .form-group textarea');
+            
+            formFields.forEach(field => {
+                field.addEventListener('focus', function() {
+                    this.parentElement.style.transform = 'translateX(5px)';
+                });
+                
+                field.addEventListener('blur', function() {
+                    this.parentElement.style.transform = 'translateX(0)';
+                });
+            });
+
+            // Form validation enhancement
+            const form = document.querySelector('.firma-form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    const requiredFields = this.querySelectorAll('[required]');
+                    let isValid = true;
+                    
+                    requiredFields.forEach(field => {
+                        if (!field.value.trim()) {
+                            isValid = false;
+                            field.style.borderColor = '#ef4444';
+                            field.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.2)';
+                        }
+                    });
+                    
+                    if (!isValid) {
+                        e.preventDefault();
+                        // Add shake animation to invalid fields
+                        requiredFields.forEach(field => {
+                            if (!field.value.trim()) {
+                                field.style.animation = 'shake 0.5s ease-in-out';
+                                setTimeout(() => {
+                                    field.style.animation = '';
+                                }, 500);
+                            }
+                        });
+                    }
+                });
+            }
+
+            // Shake animation for invalid fields
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes shake {
+                    0%, 100% { transform: translateX(0); }
+                    25% { transform: translateX(-5px); }
+                    75% { transform: translateX(5px); }
+                }
+            `;
+            document.head.appendChild(style);
+        });
+    </script>
+</body>
+</html>

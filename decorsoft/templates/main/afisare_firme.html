@@ -1,0 +1,472 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista Firmelor - Decorsoft</title>
+    <link rel="stylesheet" href="{% static 'main/css/admin_dashboard.css' %}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* === TABLE STYLES === */
+        .table-section {
+            background: linear-gradient(135deg, rgba(26, 26, 26, 0.8), rgba(10, 10, 10, 0.9));
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(220, 38, 38, 0.1);
+            backdrop-filter: blur(10px);
+            margin-top: 20px;
+            overflow-x: auto;
+        }
+
+        .firme-table {
+            width: 100%;
+            border-collapse: collapse;
+            color: var(--cream);
+        }
+
+        .firme-table th {
+            background: linear-gradient(135deg, rgba(220, 38, 38, 0.2), rgba(153, 27, 27, 0.15));
+            color: var(--cream);
+            padding: 18px 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 1rem;
+            border-bottom: 2px solid rgba(220, 38, 38, 0.3);
+            position: relative;
+        }
+
+        .firme-table th::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--red), var(--accent-red));
+            transition: width 0.3s ease;
+        }
+
+        .firme-table th:hover::after {
+            width: 100%;
+        }
+
+        .firme-table td {
+            padding: 16px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .firme-table tr {
+            transition: all 0.3s ease;
+        }
+
+        .firme-table tr:hover {
+            background: rgba(220, 38, 38, 0.1);
+            transform: translateX(5px);
+        }
+
+        .firme-table tr:hover td {
+            border-bottom-color: rgba(220, 38, 38, 0.3);
+        }
+
+        .action-link {
+            color: var(--red);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 6px;
+            background: rgba(220, 38, 38, 0.1);
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .action-link:hover {
+            background: rgba(220, 38, 38, 0.2);
+            color: var(--light-red);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(245, 245, 240, 0.7);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: rgba(220, 38, 38, 0.5);
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            color: var(--cream);
+            margin-bottom: 10px;
+            font-size: 1.4rem;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #404040, #2d2d2d);
+            color: var(--cream);
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .back-link:hover {
+            background: linear-gradient(135deg, #4a4a4a, #363636);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .table-title {
+            color: var(--cream);
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .table-stats {
+            color: rgba(245, 245, 240, 0.8);
+            font-size: 1rem;
+            background: rgba(220, 38, 38, 0.1);
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(220, 38, 38, 0.2);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .table-section {
+                padding: 20px 15px;
+                margin: 15px 0;
+            }
+
+            .firme-table {
+                font-size: 0.9rem;
+            }
+
+            .firme-table th,
+            .firme-table td {
+                padding: 12px 8px;
+            }
+
+            .table-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .action-link {
+                padding: 6px 12px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .firme-table {
+                display: block;
+            }
+
+            .firme-table thead {
+                display: none;
+            }
+
+            .firme-table tr {
+                display: block;
+                margin-bottom: 15px;
+                background: rgba(26, 26, 26, 0.6);
+                border-radius: 10px;
+                padding: 15px;
+            }
+
+            .firme-table td {
+                display: block;
+                text-align: right;
+                padding: 8px 10px;
+                border: none;
+                position: relative;
+            }
+
+            .firme-table td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 10px;
+                top: 8px;
+                font-weight: 600;
+                color: var(--cream);
+            }
+
+            .firme-table tr:hover {
+                transform: none;
+                background: rgba(220, 38, 38, 0.15);
+            }
+        }
+
+        /* Floating elements for background */
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .floating-element {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, #dc2626, transparent);
+            opacity: 0.03;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        .floating-element:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .floating-element:nth-child(2) {
+            width: 200px;
+            height: 200px;
+            top: 60%;
+            right: 10%;
+            animation-delay: 2s;
+        }
+
+        .floating-element:nth-child(3) {
+            width: 150px;
+            height: 150px;
+            bottom: 20%;
+            left: 20%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        /* CSS Variables */
+        :root {
+            --black: #0a0a0a;
+            --dark-gray: #1a1a1a;
+            --medium-gray: #2d2d2d;
+            --light-gray: #404040;
+            --cream: #f5f5f0;
+            --light-cream: #fafaf5;
+            --red: #dc2626;
+            --dark-red: #991b1b;
+            --light-red: #ef4444;
+            --accent-red: #ff4444;
+            --white: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating Background Elements -->
+    <div class="floating-elements">
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+    </div>
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>Decorsoft Admin</h2>
+                <p>Control Panel</p>
+            </div>
+            <ul class="nav-links">
+                <li><a href="{% url 'admin_dashboard' %}"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li><a href="#" class="active"><i class="fas fa-building"></i> Firme</a></li>
+                <li><a href="#"><i class="fas fa-users"></i> Utilizatori</a></li>
+                <li><a href="#"><i class="fas fa-chart-bar"></i> Rapoarte</a></li>
+                <li><a href="#"><i class="fas fa-cog"></i> Setări</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <div>
+                    <h1>Lista Firmelor</h1>
+                    <p>Bun venit, <strong>{{ user.username }}</strong>!</p>
+                </div>
+                <div class="user-info">
+                    <div class="user-avatar">
+                        {{ user.username|first|upper }}
+                    </div>
+                    <span>{{ user.email }}</span>
+                    <a href="{% url 'admin_logout' %}" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+
+            <!-- Table Section -->
+            <div class="table-section">
+                <div class="table-header">
+                    <h2 class="table-title">Firme Înregistrate</h2>
+                    {% if firme %}
+                    <div class="table-stats">
+                        <i class="fas fa-chart-bar"></i> Total: {{ firme|length }} firm{{ firme|length|pluralize:"ă,e" }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if firme %}
+                <table class="firme-table">
+                    <thead>
+                        <tr>
+                            <th>Denumire</th>
+                            <th>Email</th>
+                            <th>Telefon</th>
+                            <th>Acțiuni</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for firma in firme %}
+                        <tr>
+                            
+                            <td data-label="Denumire">
+                                <strong>{{ firma.denumire }}</strong>
+                                {% if firma.cui %}
+                                <br><small style="color: rgba(245, 245, 240, 0.6);">CUI: {{ firma.cui }}</small>
+                                {% endif %}
+                            </td>
+                            <td data-label="Email">
+                                {% if firma.email %}
+                                <a href="mailto:{{ firma.email }}" style="color: var(--red); text-decoration: none;">
+                                    {{ firma.email }}
+                                </a>
+                                {% else %}
+                                <span style="color: rgba(245, 245, 240, 0.5);">-</span>
+                                {% endif %}
+                            </td>
+                            <td data-label="Telefon">
+                                {% if firma.telefon %}
+                                {{ firma.telefon }}
+                                {% else %}
+                                <span style="color: rgba(245, 245, 240, 0.5);">-</span>
+                                {% endif %}
+                            </td>
+                            <td data-label="Acțiuni">
+                                <a href="{% url 'admin_dashboard_firma' firma.id %}" class="action-link">
+                                    <i class="fas fa-eye"></i> Vezi detalii
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-building"></i>
+                    <h3>Nicio firmă găsită</h3>
+                    <p>În momentul de față nu există firme înregistrate în sistem.</p>
+                    <a href="{% url 'inregistrare_firma' %}" class="action-link" style="margin-top: 20px;">
+                        <i class="fas fa-plus-circle"></i> Adaugă prima firmă
+                    </a>
+                </div>
+                {% endif %}
+
+                <a href="{% url 'admin_dashboard' %}" class="back-link">
+                    <i class="fas fa-arrow-left"></i> Înapoi la dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced table interactions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add data-labels for responsive design
+            const tableHeaders = document.querySelectorAll('.firme-table th');
+            const tableCells = document.querySelectorAll('.firme-table td');
+            
+            tableCells.forEach((cell, index) => {
+                const headerIndex = index % tableHeaders.length;
+                const headerText = tableHeaders[headerIndex].textContent;
+                cell.setAttribute('data-label', headerText);
+            });
+
+            // Add row click effect
+            const tableRows = document.querySelectorAll('.firme-table tbody tr');
+            tableRows.forEach(row => {
+                row.addEventListener('click', function(e) {
+                    if (!e.target.closest('.action-link')) {
+                        this.style.background = 'rgba(220, 38, 38, 0.15)';
+                        setTimeout(() => {
+                            this.style.background = '';
+                        }, 200);
+                    }
+                });
+            });
+
+            // Add search functionality (optional enhancement)
+            const addSearchFunctionality = () => {
+                const tableSection = document.querySelector('.table-section');
+                const searchHTML = `
+                    <div class="search-bar" style="margin-bottom: 20px;">
+                        <input type="text" id="tableSearch" placeholder="Caută firmă după denumire, email sau telefon...">
+                        <button type="button" onclick="filterTable()">
+                            <i class="fas fa-search"></i> Caută
+                        </button>
+                    </div>
+                `;
+                tableSection.insertAdjacentHTML('afterbegin', searchHTML);
+            };
+
+            // Uncomment the line below if you want to add search functionality
+            // addSearchFunctionality();
+        });
+
+        // Optional: Table search filter function
+        function filterTable() {
+            const input = document.getElementById('tableSearch');
+            const filter = input.value.toLowerCase();
+            const table = document.querySelector('.firme-table');
+            const tr = table.getElementsByTagName('tr');
+
+            for (let i = 1; i < tr.length; i++) {
+                const td = tr[i].getElementsByTagName('td');
+                let found = false;
+                for (let j = 0; j < td.length; j++) {
+                    if (td[j]) {
+                        if (td[j].textContent.toLowerCase().indexOf(filter) > -1) {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                tr[i].style.display = found ? '' : 'none';
+            }
+        }
+    </script>
+</body>
+</html>

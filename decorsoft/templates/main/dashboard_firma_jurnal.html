@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jurnal - Nexus Business Suite</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-dark: #0a0a0a;
+            --secondary-dark: #1a1a1a;
+            --accent-red: #ff2e2e;
+            --accent-red-light: #ff6b6b;
+            --cream: #f8f4e5;
+            --cream-light: #fffdf5;
+            --gold: #ffd700;
+            --green: #4CAF50;
+            --blue: #2196F3;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --gradient: linear-gradient(135deg, var(--accent-red) 0%, var(--accent-red-light) 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--primary-dark);
+            color: var(--cream);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 3rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: var(--secondary-dark);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            background: linear-gradient(45deg, var(--cream), var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .header-left p {
+            color: var(--cream);
+            opacity: 0.7;
+            font-size: 1.1rem;
+        }
+
+        .back-button {
+            background: var(--gradient);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        /* Container Principal */
+        .jurnal-container {
+            padding: 2rem 3rem;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Bară de căutare și acțiuni */
+        .search-actions-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            gap: 1rem;
+        }
+
+        .search-box {
+            flex: 1;
+            max-width: 400px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 20px 12px 45px;
+            background: var(--secondary-dark);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: var(--cream);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent-red);
+            box-shadow: 0 0 0 2px rgba(255, 46, 46, 0.2);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--cream);
+            opacity: 0.7;
+        }
+
+        .add-button {
+            background: var(--gradient);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .add-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        /* Tabel - Design Îmbunătățit */
+        .jurnal-table-container {
+            background: var(--secondary-dark);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .jurnal-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            min-width: 1200px;
+        }
+
+        .jurnal-table thead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .jurnal-table th {
+            background: linear-gradient(135deg, rgba(255, 46, 46, 0.15) 0%, rgba(255, 107, 107, 0.1) 100%);
+            padding: 1.5rem 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--accent-red-light);
+            border-bottom: 2px solid var(--accent-red);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        .jurnal-table th:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 20%;
+            height: 60%;
+            width: 1px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .jurnal-table td {
+            padding: 1.5rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .jurnal-table tbody tr {
+            transition: var(--transition);
+        }
+
+        .jurnal-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+            transform: translateX(4px);
+        }
+
+        .jurnal-table tbody tr:hover td {
+            background: transparent;
+        }
+
+        .jurnal-table tbody tr:hover td::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background: var(--gradient);
+        }
+
+        .number-cell {
+            font-weight: 700;
+            color: var(--gold);
+            width: 90px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+        }
+
+        .amount-cell {
+            font-weight: 700;
+            text-align: right;
+            width: 140px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+        }
+
+        .debit-amount {
+            color: var(--green);
+            position: relative;
+        }
+
+        .debit-amount::before {
+            content: '+';
+            margin-right: 4px;
+            font-weight: 700;
+        }
+
+        .credit-amount {
+            color: #ff6b6b;
+            position: relative;
+        }
+
+        .credit-amount::before {
+            content: '-';
+            margin-right: 4px;
+            font-weight: 700;
+        }
+
+        .date-cell {
+            text-align: center;
+            width: 130px;
+            font-weight: 600;
+            color: var(--cream-light);
+        }
+
+        .document-cell {
+            width: 110px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .explicatii-cell {
+            min-width: 250px;
+            max-width: 350px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .actions-cell {
+            width: 180px;
+            text-align: center;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 80px;
+            justify-content: center;
+        }
+
+        .btn-edit {
+            background: rgba(33, 150, 243, 0.15);
+            color: var(--blue);
+            border: 1px solid rgba(33, 150, 243, 0.3);
+        }
+
+        .btn-edit:hover {
+            background: rgba(33, 150, 243, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
+        }
+
+        .btn-delete {
+            background: rgba(255, 107, 107, 0.15);
+            color: var(--accent-red-light);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-delete:hover {
+            background: rgba(255, 107, 107, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);
+        }
+
+        /* Statistici */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background: var(--secondary-dark);
+            padding: 2rem 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+        }
+
+        .stat-number {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        .stat-label {
+            color: var(--cream);
+            opacity: 0.7;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--cream);
+            opacity: 0.5;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.3;
+        }
+
+        .empty-state p {
+            font-size: 1.2rem;
+            font-weight: 300;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+
+        .modal-content {
+            background: var(--secondary-dark);
+            padding: 2.5rem;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 650px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-header h3 {
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--cream);
+            font-size: 1.5rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: var(--transition);
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        .close-modal:hover {
+            opacity: 1;
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1.8rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.8rem;
+            color: var(--cream);
+            opacity: 0.9;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--primary-dark);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: var(--cream);
+            font-size: 1rem;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent-red);
+            box-shadow: 0 0 0 3px rgba(255, 46, 46, 0.15);
+            background: rgba(10, 10, 10, 0.8);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .submit-btn {
+            background: var(--gradient);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 100%;
+            margin-top: 1rem;
+            font-size: 1.1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .submit-btn:hover::before {
+            left: 100%;
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            color: var(--accent-red-light);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            display: none;
+            font-weight: 500;
+        }
+
+        .form-help {
+            font-size: 0.8rem;
+            color: var(--cream);
+            opacity: 0.6;
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+
+        .readonly-field {
+            background: rgba(255, 255, 255, 0.05) !important;
+            color: rgba(255, 255, 255, 0.5) !important;
+            cursor: not-allowed;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .jurnal-container {
+                padding: 1.5rem;
+            }
+            
+            .jurnal-table-container {
+                overflow-x: auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 1.5rem;
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .jurnal-container {
+                padding: 1rem;
+            }
+
+            .search-actions-bar {
+                flex-direction: column;
+            }
+
+            .search-box {
+                max-width: 100%;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .stats-bar {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                padding: 2rem 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <h1>Registru Jurnal</h1>
+            <p>Gestionare operațiuni contabile</p>
+        </div>
+        <a href="{% url 'dashboard_firma' %}" class="back-button">
+            <i class="fas fa-arrow-left"></i>
+            Înapoi la Dashboard
+        </a>
+    </div>
+
+    <!-- Container Principal -->
+    <div class="jurnal-container">
+        <!-- Bară de căutare și acțiuni -->
+        <div class="search-actions-bar">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Caută după document, explicații...">
+            </div>
+            <button class="add-button" id="addOperationBtn">
+                <i class="fas fa-plus"></i>
+                Adaugă Operațiune
+            </button>
+        </div>
+
+        <!-- Statistici rapide -->
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="stat-number">{{ registre.count }}</div>
+                <div class="stat-label">Total Operațiuni</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">₡{{ total_debit }}</div>
+                <div class="stat-label">Total Debit</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">₡{{ total_credit }}</div>
+                <div class="stat-label">Total Credit</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">₡{{ total_suma }}</div>
+                <div class="stat-label">Total Sumă</div>
+            </div>
+        </div>
+
+        <!-- Tabel Operațiuni -->
+        <div class="jurnal-table-container">
+            <table class="jurnal-table">
+                <thead>
+                    <tr>
+                        <th class="number-cell">Număr</th>
+                        <th class="document-cell">Document</th>
+                        <th class="date-cell">Data</th>
+                        <th class="amount-cell">Credit</th>
+                        <th class="amount-cell">Debit</th>
+                        <th class="amount-cell">Suma</th>
+                        <th class="explicatii-cell">Explicații</th>
+                        <th class="actions-cell">Acțiuni</th>
+                    </tr>
+                </thead>
+                <tbody id="registruTableBody">
+                    {% for registru in registre %}
+                    <tr data-id="{{ registru.id }}">
+                        <td class="number-cell">{{ registru.nrdoc }}</td>
+                        <td class="document-cell">{{ registru.feldoc }}</td>
+                        <td class="date-cell">{{ registru.datadoc|date:"d.m.Y" }}</td>
+                        <td class="amount-cell credit-amount">{{ registru.credit }}</td>
+                        <td class="amount-cell debit-amount">{{ registru.debit }}</td>
+                        <td class="amount-cell">₡{{ registru.suma }}</td>
+                        <td class="explicatii-cell">{{ registru.explicatii }}</td>
+                        <td class="actions-cell">
+                            <div class="action-buttons">
+                                <button class="btn btn-edit" data-id="{{ registru.id }}">
+                                    <i class="fas fa-edit"></i> Modifică
+                                </button>
+                                <button class="btn btn-delete" data-id="{{ registru.id }}">
+                                    <i class="fas fa-trash"></i> Șterge
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr id="emptyState">
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <i class="fas fa-file-alt"></i>
+                                <p>Nu există înregistrări în jurnal</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal pentru Adăugare/Modificare Operațiune -->
+    <div class="modal-overlay" id="operationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Adaugă Operațiune</h3>
+                <button class="close-modal" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="operationForm">
+                {% csrf_token %}
+                <input type="hidden" id="operationId" name="id" value="">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="feldoc">Tip Document *</label>
+                        <input type="text" id="feldoc" name="feldoc" maxlength="4" required placeholder="Ex: FACT">
+                        <div class="form-help">Maxim 4 caractere</div>
+                        <div class="error-message" id="feldocError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="nrdoc">Număr Document</label>
+                        <input type="text" id="nrdoc" name="nrdoc" class="readonly-field" readonly>
+                        <div class="form-help">Generat automat</div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="datadoc">Data Document *</label>
+                        <input type="datetime-local" id="datadoc" name="datadoc" required>
+                        <div class="error-message" id="datadocError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="suma">Suma *</label>
+                        <input type="number" id="suma" name="suma" step="0.01" min="0" required placeholder="0.00">
+                        <div class="error-message" id="sumaError"></div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="debit">Debit *</label>
+                        <input type="text" id="debit" name="debit" maxlength="15" required placeholder="Ex: 1000.00">
+                        <div class="form-help">Maxim 15 caractere</div>
+                        <div class="error-message" id="debitError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="credit">Credit *</label>
+                        <input type="text" id="credit" name="credit" maxlength="15" required placeholder="Ex: 1000.00">
+                        <div class="form-help">Maxim 15 caractere</div>
+                        <div class="error-message" id="creditError"></div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="explicatii">Explicații</label>
+                    <textarea id="explicatii" name="explicatii" rows="3" maxlength="100" placeholder="Descriere operațiune..."></textarea>
+                    <div class="form-help">Maxim 100 caractere</div>
+                    <div class="error-message" id="explicatiiError"></div>
+                </div>
+                
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <i class="fas fa-save"></i>
+                    <span id="submitText">Salvează Operațiune</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('operationModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const operationId = document.getElementById('operationId');
+            const nrdocInput = document.getElementById('nrdoc');
+            const addBtn = document.getElementById('addOperationBtn');
+            const closeBtn = document.getElementById('closeModal');
+            const form = document.getElementById('operationForm');
+            const searchInput = document.getElementById('searchInput');
+            const submitBtn = document.getElementById('submitBtn');
+            const submitText = document.getElementById('submitText');
+            const tableBody = document.getElementById('registruTableBody');
+            const emptyState = document.getElementById('emptyState');
+
+            let isEditMode = false;
+
+            // Event delegation pentru butoanele de acțiuni
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.btn-edit')) {
+                    const button = e.target.closest('.btn-edit');
+                    const id = button.getAttribute('data-id');
+                    editOperation(id);
+                }
+                
+                if (e.target.closest('.btn-delete')) {
+                    const button = e.target.closest('.btn-delete');
+                    const id = button.getAttribute('data-id');
+                    deleteOperation(id);
+                }
+            });
+
+            // Deschide modal pentru adăugare
+            addBtn.addEventListener('click', () => {
+                isEditMode = false;
+                modalTitle.textContent = 'Adaugă Operațiune';
+                submitText.textContent = 'Salvează Operațiune';
+                operationId.value = '';
+                nrdocInput.value = 'Se va genera automat';
+                
+                // Setează data și ora curentă ca valoare implicită
+                const now = new Date();
+                const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+                document.getElementById('datadoc').value = localDateTime;
+                
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            });
+
+            // Închide modal
+            closeBtn.addEventListener('click', closeModal);
+
+            // Închide modal la click în afara
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+
+            function closeModal() {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                form.reset();
+                hideAllErrors();
+                isEditMode = false;
+            }
+
+            function hideAllErrors() {
+                document.querySelectorAll('.error-message').forEach(error => {
+                    error.style.display = 'none';
+                    error.textContent = '';
+                });
+            }
+
+            function showError(field, message) {
+                const errorElement = document.getElementById(field + 'Error');
+                if (errorElement) {
+                    errorElement.textContent = message;
+                    errorElement.style.display = 'block';
+                }
+            }
+
+            // Funcția de editare - MODIFICATĂ pentru a folosi modalul
+            function editOperation(id) {
+                const row = document.querySelector(`tr[data-id="${id}"]`);
+                if (!row) return;
+
+                isEditMode = true;
+                modalTitle.textContent = 'Modifică Operațiune';
+                submitText.textContent = 'Actualizează Operațiune';
+                operationId.value = id;
+
+                // Populează formularul cu datele existente
+                document.getElementById('feldoc').value = row.cells[1].textContent;
+                nrdocInput.value = row.cells[0].textContent;
+                
+                // Format data pentru datetime-local
+                const dateText = row.cells[2].textContent;
+                const [day, month, year] = dateText.split('.');
+                const date = new Date(`${year}-${month}-${day}`);
+                const localDateTime = new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+                document.getElementById('datadoc').value = localDateTime;
+                
+                document.getElementById('credit').value = row.cells[3].textContent;
+                document.getElementById('debit').value = row.cells[4].textContent;
+                document.getElementById('suma').value = row.cells[5].textContent.replace('₡', '').trim();
+                document.getElementById('explicatii').value = row.cells[6].textContent;
+
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+
+            // Funcția de ștergere (păstrată pentru completitudine)
+            async function deleteOperation(id) {
+                if (!confirm('Sunteți sigur că doriți să ștergeți această operațiune? Această acțiune este ireversibilă.')) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch('{% url "sterge_registru_ajax" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: `id=${id}`
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        showNotification(data.message, 'success');
+                        
+                        // Elimină rândul din tabel
+                        const row = document.querySelector(`tr[data-id="${id}"]`);
+                        if (row) {
+                            row.remove();
+                        }
+                        
+                        // Verifică dacă mai sunt rânduri
+                        if (tableBody.children.length === 0) {
+                            location.reload();
+                        } else {
+                            // Reîncarcă pentru a actualiza statisticile
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1000);
+                        }
+                    } else {
+                        showNotification('Eroare la ștergerea operațiunii', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showNotification('Eroare la comunicarea cu serverul', 'error');
+                }
+            }
+
+            // Căutare în timp real
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const rows = document.querySelectorAll('.jurnal-table tbody tr');
+                let hasVisibleRows = false;
+                
+                rows.forEach(row => {
+                    if (row.querySelector('.empty-state')) return;
+                    
+                    const text = row.textContent.toLowerCase();
+                    const isVisible = text.includes(searchTerm);
+                    row.style.display = isVisible ? '' : 'none';
+                    
+                    if (isVisible) hasVisibleRows = true;
+                });
+            });
+
+            // Submit form - MODIFICAT pentru a gestiona atât adăugarea cât și modificarea
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Ascunde erorile anterioare
+                hideAllErrors();
+                
+                // Disable butonul submit
+                submitBtn.disabled = true;
+                submitText.innerHTML = '<span class="spinner"></span> Se procesează...';
+                
+                try {
+                    const formData = new FormData(this);
+                    const url = isEditMode ? '{% url "modifica_registru_ajax" %}' : '{% url "adauga_registru_ajax" %}';
+                    
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        if (isEditMode) {
+                            // Actualizează rândul existent
+                            updateRowInTable(data.data);
+                            showNotification('Înregistrarea a fost actualizată cu succes!', 'success');
+                        } else {
+                            // Adaugă noul rând în tabel
+                            addRowToTable(data.data);
+                            showNotification('Înregistrarea a fost adăugată cu succes!', 'success');
+                        }
+                        
+                        // Închide modal
+                        closeModal();
+                        
+                        // Reîncarcă pagina pentru a actualiza statisticile
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1500);
+                        
+                    } else {
+                        // Afișează erorile
+                        if (data.errors) {
+                            for (const field in data.errors) {
+                                showError(field, data.errors[field][0]);
+                            }
+                        }
+                        showNotification('Eroare la salvarea operațiunii', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showNotification('Eroare la comunicarea cu serverul', 'error');
+                } finally {
+                    // Reactivează butonul submit
+                    submitBtn.disabled = false;
+                    submitText.innerHTML = isEditMode ? 'Actualizează Operațiune' : 'Salvează Operațiune';
+                }
+            });
+
+            function addRowToTable(registruData) {
+                // Elimină rândul empty state dacă există
+                if (emptyState) {
+                    emptyState.remove();
+                }
+                
+                // Creează noul rând
+                const newRow = document.createElement('tr');
+                newRow.setAttribute('data-id', registruData.id);
+                newRow.innerHTML = `
+                    <td class="number-cell">${registruData.nrdoc}</td>
+                    <td class="document-cell">${registruData.feldoc}</td>
+                    <td class="date-cell">${formatDate(registruData.datadoc)}</td>
+                    <td class="amount-cell credit-amount">${registruData.credit}</td>
+                    <td class="amount-cell debit-amount">${registruData.debit}</td>
+                    <td class="amount-cell">₡${registruData.suma}</td>
+                    <td class="explicatii-cell">${registruData.explicatii || ''}</td>
+                    <td class="actions-cell">
+                        <div class="action-buttons">
+                            <button class="btn btn-edit" data-id="${registruData.id}">
+                                <i class="fas fa-edit"></i> Modifică
+                            </button>
+                            <button class="btn btn-delete" data-id="${registruData.id}">
+                                <i class="fas fa-trash"></i> Șterge
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                // Adaugă rândul la începutul tabelei
+                tableBody.insertBefore(newRow, tableBody.firstChild);
+            }
+
+            function updateRowInTable(registruData) {
+                const row = document.querySelector(`tr[data-id="${registruData.id}"]`);
+                if (row) {
+                    row.innerHTML = `
+                        <td class="number-cell">${registruData.nrdoc}</td>
+                        <td class="document-cell">${registruData.feldoc}</td>
+                        <td class="date-cell">${formatDate(registruData.datadoc)}</td>
+                        <td class="amount-cell credit-amount">${registruData.credit}</td>
+                        <td class="amount-cell debit-amount">${registruData.debit}</td>
+                        <td class="amount-cell">₡${registruData.suma}</td>
+                        <td class="explicatii-cell">${registruData.explicatii || ''}</td>
+                        <td class="actions-cell">
+                            <div class="action-buttons">
+                                <button class="btn btn-edit" data-id="${registruData.id}">
+                                    <i class="fas fa-edit"></i> Modifică
+                                </button>
+                                <button class="btn btn-delete" data-id="${registruData.id}">
+                                    <i class="fas fa-trash"></i> Șterge
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                }
+            }
+
+            function formatDate(dateString) {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('ro-RO');
+            }
+
+            function showNotification(message, type = 'info') {
+                // Creează elementul de notificare
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3'};
+                    color: white;
+                    padding: 1rem 2rem;
+                    border-radius: 10px;
+                    z-index: 10000;
+                    animation: slideInRight 0.3s ease-out;
+                    box-shadow: var(--shadow);
+                    max-width: 400px;
+                    font-weight: 600;
+                `;
+                notification.textContent = message;
+                document.body.appendChild(notification);
+                
+                // Șterge notificarea după 4 secunde
+                setTimeout(() => {
+                    notification.style.animation = 'slideOutRight 0.3s ease-out forwards';
+                    setTimeout(() => notification.remove(), 300);
+                }, 4000);
+            }
+
+            // Adaugă animațiile pentru notificări
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideInRight { 
+                    from { transform: translateX(100%); opacity: 0; } 
+                    to { transform: translateX(0); opacity: 1; } 
+                }
+                @keyframes slideOutRight { 
+                    from { transform: translateX(0); opacity: 1; } 
+                    to { transform: translateX(100%); opacity: 0; } 
+                }
+            `;
+            document.head.appendChild(style);
+        });
+    </script>
+</body>
+</html>

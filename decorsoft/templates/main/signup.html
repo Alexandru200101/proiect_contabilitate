@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Înregistrare - DecorSoft</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Variabile CSS pentru paleta de culori */
+        :root {
+            --black: #111111;
+            --dark-gray: #1a1a1a;
+            --medium-gray: #2a2a2a;
+            --light-gray: #3a3a3a;
+            --cream: #f5f5f0;
+            --light-cream: #fafaf5;
+            --red: #e53935;
+            --dark-red: #b71c1c;
+            --light-red: #ff5252;
+            --white: #ffffff;
+        }
+
+        /* Reset și stiluri de bază */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(to bottom right, var(--dark-gray), var(--black));
+            color: var(--cream);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background-color: var(--black);
+            padding: 15px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            background-color: var(--red);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-icon i {
+            color: var(--white);
+            font-size: 1.2rem;
+        }
+
+        .logo h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .logo span {
+            color: var(--red);
+        }
+
+        .nav {
+            display: flex;
+            gap: 15px;
+        }
+
+        /* Butoane */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .btn-login {
+            background-color: var(--medium-gray);
+            color: var(--cream);
+            border: 1px solid var(--light-gray);
+        }
+
+        .btn-login:hover {
+            background-color: var(--light-gray);
+        }
+
+        .btn-signup {
+            background-color: var(--red);
+            color: var(--white);
+        }
+
+        .btn-signup:hover {
+            background-color: var(--dark-red);
+        }
+
+        .btn-primary {
+            background-color: var(--red);
+            color: var(--white);
+            padding: 15px 30px;
+            font-size: 1rem;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--dark-red);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(229, 57, 53, 0.3);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 0;
+        }
+
+        .auth-container {
+            display: flex;
+            width: 100%;
+            max-width: 1000px;
+            background-color: var(--dark-gray);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--medium-gray);
+        }
+
+        .auth-visual {
+            flex: 1;
+            background: linear-gradient(135deg, var(--red), var(--dark-red));
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-visual::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+        }
+
+        .auth-visual-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .auth-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            color: var(--white);
+        }
+
+        .auth-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--white);
+        }
+
+        .auth-description {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 300px;
+        }
+
+        .auth-form-container {
+            flex: 1;
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .form-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--cream);
+        }
+
+        .form-subtitle {
+            color: var(--light-cream);
+            margin-bottom: 30px;
+        }
+
+        .form {
+            width: 100%;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--light-cream);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--medium-gray);
+            border: 1px solid var(--light-gray);
+            border-radius: 10px;
+            color: var(--cream);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--red);
+            box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.2);
+        }
+
+        .form-input::placeholder {
+            color: var(--light-gray);
+        }
+
+        .form-footer {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .form-footer p {
+            color: var(--light-cream);
+            margin-top: 20px;
+        }
+
+        .form-footer a {
+            color: var(--red);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            color: var(--red);
+            background-color: rgba(229, 57, 53, 0.1);
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 3px solid var(--red);
+        }
+
+        /* Footer */
+        .footer {
+            background-color: var(--black);
+            padding: 20px 0;
+            margin-top: auto;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            color: var(--light-cream);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .auth-form-container {
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .auth-visual {
+            animation: fadeIn 0.8s ease-out 0.2s both;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .auth-container {
+                flex-direction: column;
+            }
+            
+            .auth-visual {
+                padding: 30px 20px;
+            }
+            
+            .auth-form-container {
+                padding: 30px;
+            }
+            
+            .auth-icon {
+                font-size: 3.5rem;
+            }
+            
+            .auth-title {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+{% load static %}
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contabilitate DecorSoft - Signup</title>
+    <link rel="stylesheet" href="{% static 'main.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h1>DecorSoft<span>.</span></h1>
+            </div>
+            <nav class="nav">
+                <a href="{% url 'login' %}" class="btn btn-login">
+                    <i class="fas fa-sign-in-alt"></i>Login
+                </a>
+                <a href="{% url 'main' %}" class="btn btn-login">
+                    <i class="fas fa-home"></i>Acasă
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <div class="auth-container">
+                <div class="auth-visual">
+                    <div class="auth-visual-content">
+                        <div class="auth-icon">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <h2 class="auth-title">Creează Cont Nou</h2>
+                        <p class="auth-description">Alătură-te comunității noastre și beneficiază de toate avantajele DecorSoft</p>
+                    </div>
+                </div>
+
+                <div class="auth-form-container">
+                    <h2 class="form-title">Înregistrare</h2>
+                    <p class="form-subtitle">Completează detaliile pentru a crea un cont nou</p>
+
+                    <form method="post" class="form">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                            <div class="error-message">
+                                Verifică datele introduse și încearcă din nou.
+                            </div>
+                        {% endif %}
+
+                        <!-- Afișează toate câmpurile din formular automat -->
+                        {{ form.as_p }}
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-user-plus"></i> Creează Cont
+                        </button>
+
+                        <div class="form-footer">
+                            <p>Ai deja un cont? <a href="{% url 'login' %}">Autentifică-te aici</a></p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>© 2025 DecorSoft - Toate drepturile rezervate</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Script pentru animații / UX -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => input.classList.add('form-input'));
+        });
+    </script>
+</body>
+</html>

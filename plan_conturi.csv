@@ -1,0 +1,773 @@
+id,simbol,analitic,denumire,tip
+,1,,"Conturi de capitaluri, provizioane, imprumuturi si",P
+,10,,Capital si rezerve,P
+,101,,Capital,P
+,1011,,Capital subscris nevarsat (P),P
+,1012,,Capital subscris varsat (P),P
+,1015,,Patrimoniul regiei (P),P
+,1016,,Patrimoniul public (P),P
+,1017,,Patrimoniul privat (P),P
+,1018,,Patrimoniul institutelor nationale de cercetare-de,P
+,103,,Alte elemente de capitaluri proprii,P
+,1031,,Beneficii acordate angajatilor sub forma instrumen,P
+,1033,,Diferente de curs valutar in relatie cu investitia,B
+,1038,,Diferente din modificarea valorii juste a activelo,B
+,104,,Prime de capital,P
+,1041,,Prime de emisiune (P),P
+,1042,,Prime de fuziune/divizare (P),P
+,1043,,Prime de aport (P),P
+,1044,,Prime de conversie a obligatiunilor in actiuni (P),P
+,105,,Rezerve din reevaluare (P),P
+,1051,,Rezerve din reevaluarea cladirilor,P
+,106,,Rezerve,P
+,1061,,Rezerve legale (P),P
+,1063,,Rezerve statutare sau contractuale (P),P
+,1068,,Alte rezerve (P),P
+,107,,Diferente de curs valutar din conversie (A/P),B
+,108,,Interese care nu controleaza,P
+,1081,,Interese care nu controleaza - rezultatul exerciti,B
+,1082,,Interese care nu controleaza - alte capitaluri pro,B
+,109,,Actiuni proprii,P
+,1091,,Actiuni proprii detinute pe termen scurt (A),A
+,1092,,Actiuni proprii detinute pe termen lung (A),A
+,1095,,Actiuni proprii reprezentând titluri detinute de s,A
+,11,,Rezultatul reportat,P
+,117,,Rezultatul reportat,B
+,1171,,Rezultatul reportat reprezentând profitul nerepart,B
+,1172,,Rezultatul reportat provenit din adoptarea pentru,B
+,1173,,Rezultatul reportat provenit din modificarile poli,B
+,1174,,Rezultatul reportat provenit din corectarea eroril,B
+,1175,,Rezultatul reportat reprezentând surplusul realiza,P
+,1176,,Rezultatul reportat provenit din trecerea la aplic,B
+,12,,Rezultatul exercitiului financiar,P
+,121,,Profit sau pierdere (A/P),B
+,121.01,,Profit sau pierdere - din exploatare,B
+,121.02,,Profit sau pierdere - financiar,B
+,121.03,,Profit sau pierdere - exceptional,B
+,121.04,,Profit sau pierdere - impozit pe profit / venit,B
+,121.05,,Profit sau pierdere - productia stocata,B
+,129,,Repartizarea profitului (A),A
+,134,,Plusuri de inventar de natura mijloacelor fixe,P
+,14,,"Câstiguri sau pierderi legate de emiterea, rascump",P
+,141,,Câstiguri legate de vânzarea sau anularea instrume,P
+,1411,,Câstiguri legate de vânzarea instrumentelor de cap,P
+,1412,,Câstiguri legate de anularea instrumentelor de cap,P
+,149,,"Pierderi legate de emiterea, rascumpararea, vânzar",A
+,1491,,Pierderi rezultate din vânzarea instrumentelor de,A
+,1495,,"Pierderi rezultate din reorganizari, care sunt det",A
+,1496,,"Pierderi rezultate din reorganizari de societati,",A
+,1498,,Alte pierderi legate de instrumentele de capitalur,A
+,15,,Provizioane,P
+,151,,Provizioane,P
+,1511,,Provizioane pentru litigii (P),P
+,1512,,Provizioane pentru garantii acordate clientilor (P,P
+,1513,,Provizioane pentru dezafectare imobilizari corpora,P
+,1514,,Provizioane pentru restructurare (P),P
+,1515,,Provizioane pentru pensii si obligatii similare (P,P
+,1516,,Provizioane pentru impozite (P),P
+,1517,,Provizioane pentru terminarea contractului de munc,P
+,1518,,Alte provizioane (P),P
+,16,,Imprumuturi si datorii asimilate,P
+,161,,Imprumuturi din emisiuni de obligatiuni,P
+,1614,,Imprumuturi externe din emisiuni de obligatiuni ga,P
+,1615,,Imprumuturi externe din emisiuni de obligatiuni ga,P
+,1617,,Imprumuturi interne din emisiuni de obligatiuni ga,P
+,1618,,Alte imprumuturi din emisiuni de obligatiuni (P),P
+,162,,Credite bancare pe termen lung,P
+,1621,,Credite bancare pe termen lung (P),P
+,1621.01,,Credite bancare pe termen lung- Lei,P
+,1621.02,,Credite bancare pe terman lung-Valuta,P
+,1622,,Credite bancare pe termen lung nerambursate la sca,P
+,1623,,Credite externe guvernamentale (P),P
+,1624,,Credite bancare externe garantate de stat (P),P
+,1625,,Credite bancare externe garantate de banci (P),P
+,1626,,Credite de la trezoreria statului (P),P
+,1627,,Credite bancare interne garantate de stat (P),P
+,166,,Datorii care privesc imobilizarile financiare,P
+,1661,,Datorii fata de entitatile afiliate (P),P
+,1663,,Datorii fata de entitatile asociate si entitatile,P
+,167,,Alte imprumuturi si datorii asimilate (P),P
+,168,,Dobânzi aferente imprumuturilor si datoriilor asim,P
+,1681,,Dobânzi aferente imprumuturilor din emisiuni de ob,P
+,1682,,Dobânzi aferente creditelor bancare pe termen lung,P
+,1685,,Dobânzi aferente datoriilor fata de entitatile afi,P
+,1686,,Dobânzi aferente datoriilor fata de entitatile aso,P
+,1687,,Dobânzi aferente altor imprumuturi si datorii asim,P
+,169,,Prime privind rambursarea obligatiunilor si a alto,A
+,1691,,Prime privind rambursarea obligatiunilor (A),A
+,1692,,Prime privind rambursarea altor datorii (A),A
+,2,,Conturi de imobilizari,A
+,20,,IMOBILIZaRI NECORPORALE,A
+,201,,Cheltuieli de constituire (A),A
+,203,,Cheltuieli de dezvoltare (A),A
+,205,,"Concesiuni, brevete, licente, marci comerciale, dr",A
+,206,,Active necorporale de explorare si evaluare a resu,A
+,207,,Fond comercial,A
+,2071,,Fond comercial pozitiv (A),A
+,2075,,Fond comercial negativ (P),P
+,208,,Alte imobilizari necorporale (A),A
+,21,,Imobilizari corporale,A
+,211,,Terenuri si amenajari de terenuri (A),A
+,2111,,Terenuri,A
+,2112,,Amenajari de terenuri,A
+,212,,Constructii (A),A
+,213,,Instalatii tehnice si mijloace de transport,A
+,2131,,"Echipamente tehnologice (masini, utilaje si instal",A
+,2132,,"Aparate si instalatii de masurare, control si regl",A
+,2133,,Mijloace de transport (A),A
+,214,,"Mobilier, aparatura birotica, echipamente de prote",A
+,215,,Investitii imobiliare (A),A
+,216,,Active corporale de explorare si evaluare a resurs,A
+,217,,Active biologice productive (A),A
+,22,,Imobilizari corporale in curs de aprovizionare,A
+,223,,Instalatii tehnice si mijloace de transport in cur,A
+,224,,"Mobilier, aparatura birotica, echipamente de prote",A
+,227,,Active biologice productive in curs de aproviziona,A
+,23,,Imobilizari in curs,A
+,231,,Imobilizari corporale in curs de executie (A),A
+,235,,Investitii imobiliare in curs de executie (A),A
+,26,,Imobilizari financiare,A
+,261,,Actiuni detinute la entitatile afiliate (A),A
+,262,,Actiuni detinute la entitati asociate (A),A
+,263,,Actiuni detinute la entitati controlate in comun (,A
+,264,,Titluri puse in echivalenta (A),A
+,265,,Alte titluri imobilizate (A),A
+,266,,Certificate verzi amânate (A),A
+,267,,Creante imobilizate,A
+,2671,,Sume de incasat de la entitatile afiliate (A),A
+,2672,,Dobânda aferenta sumelor de incasat de la entitati,A
+,2673,,Creante fata de entitatile asociate si entitatile,A
+,2674,,Dobânda aferenta creantelor fata de entitatile aso,A
+,2675,,Imprumuturi acordate pe termen lung (A),A
+,2676,,Dobânda aferenta imprumuturilor acordate pe termen,A
+,2677,,Obligatiuni achizitionate cu ocazia emisiunilor ef,A
+,2678,,Alte creante imobilizate (A),A
+,2679,,Dobânzi aferente altor creante imobilizate (A),A
+,269,,Varsaminte de efectuat pentru imobilizari financia,A
+,2691,,Varsaminte de efectuat privind actiunile detinute,P
+,2692,,Varsaminte de efectuat privind actiunile detinute,P
+,2693,,Varsaminte de efectuat privind actiunile detinute,P
+,2695,,Varsaminte de efectuat pentru alte imobilizari fin,P
+,28,,Amortizari privind imobilizarile,A
+,280,,Amortizari privind imobilizarile necorporale,P
+,2801,,Amortizarea cheltuielilor de constituire (P),P
+,2803,,Amortizarea cheltuielilor de dezvoltare (P),P
+,2805,,"Amortizarea concesiunilor, brevetelor, licentelor,",P
+,2806,,Amortizarea activelor necorporale de explorare si,P
+,2807,,Amortizarea fondului comercial (P),P
+,2808,,Amortizarea altor imobilizari necorporale (P),P
+,281,,Amortizari privind imobilizarile corporale,P
+,2811,,Amortizarea amenajarilor de terenuri (P),P
+,2812,,Amortizarea constructiilor (P),P
+,2813,,Amortizarea instalatiilor si mijloacelor de transp,P
+,2814,,Amortizarea altor imobilizari corporale (P),P
+,2815,,Amortizarea investitiilor imobiliare (P),P
+,2816,,Amortizarea activelor corporale de explorare si ev,P
+,2817,,Amortizarea activelor biologice productive (P),P
+,29,,Ajustari pentru deprecierea sau pierderea de valoa,A
+,290,,Ajustari pentru deprecierea imobilizarilor necorpo,A
+,2903,,Ajustari pentru deprecierea cheltuielilor de dezvo,P
+,2905,,"Ajustari pentru deprecierea concesiunilor, brevete",P
+,2906,,Ajustari pentru deprecierea activelor necorporale,P
+,2908,,Ajustari pentru deprecierea altor imobilizari neco,P
+,291,,Ajustari pentru deprecierea imobilizarilor corpora,A
+,2911,,Ajustari pentru deprecierea terenurilor si amenaja,P
+,2912,,Ajustari pentru deprecierea constructiilor (P),P
+,2913,,Ajustari pentru deprecierea instalatiilor si mijlo,P
+,2914,,Ajustari pentru deprecierea altor imobilizari corp,P
+,2915,,Ajustari pentru deprecierea investitiilor imobilia,P
+,2916,,Ajustari pentru deprecierea activelor corporale de,P
+,2917,,Ajustari pentru deprecierea activelor biologice pr,P
+,293,,Ajustari pentru deprecierea imobilizarilor in curs,A
+,2931,,Ajustari pentru deprecierea imobilizarilor corpora,P
+,2935,,Ajustari pentru deprecierea investitiilor imobilia,P
+,296,,Ajustari pentru pierderea de valoare a imobilizari,A
+,2961,,Ajustari pentru pierderea de valoare a actiunilor,P
+,2962,,Ajustari pentru pierderea de valoare a actiunilor,P
+,2963,,Ajustari pentru pierderea de valoare a altor titlu,P
+,2964,,Ajustari pentru pierderea de valoare a sumelor de,P
+,2965,,Ajustari pentru pierderea de valoare a creantelor,P
+,2966,,Ajustari pentru pierderea de valoare a imprumuturi,P
+,2968,,Ajustari pentru pierderea de valoare a altor crean,P
+,3,,Conturi de stocuri si productie in curs de executi,A
+,30,,Stocuri de materii prime si materiale,A
+,301,,Materii prime (A),A
+,302,,Materiale consumabile,A
+,3021,,Materiale auxiliare (A),A
+,3022,,Combustibili (A),A
+,3023,,Materiale pentru ambalat (A),A
+,3024,,Piese de schimb (A),A
+,3025,,Seminte si materiale de plantat (A),A
+,3026,,Furaje (A),A
+,3028,,Alte materiale consumabile (A),A
+,303,,Materiale de natura obiectelor de inventar (A),A
+,308,,Diferente de pret la materii prime si materiale (A,B
+,32,,Stocuri in curs de aprovizionare,A
+,321,,Materii prime in curs de aprovizionare (A),A
+,322,,Materiale consumabile in curs de aprovizionare (A),A
+,323,,Materiale de natura obiectelor de inventar in curs,A
+,326,,Active biologice de natura stocurilor in curs de a,A
+,327,,Marfuri in curs de aprovizionare (A),A
+,328,,Ambalaje in curs de aprovizionare (A),A
+,33,,Productie in curs de executie,A
+,331,,Produse in curs de executie (A),A
+,332,,Servicii in curs de executie (A),A
+,34,,PRODUSE,A
+,341,,Semifabricate (A),A
+,345,,Produse finite (A),A
+,346,,Produse reziduale (A),A
+,347,,Produse agricole (A),A
+,348,,Diferente de pret la produse (A/P),B
+,35,,STOCURI AFLATE LA TERTI,A
+,351,,Materii si materiale aflate la terti (A),A
+,354,,Produse aflate la terti (A),A
+,356,,Active biologice de natura stocurilor aflate la te,A
+,357,,Marfuri aflate la terti (A),A
+,358,,Ambalaje aflate la terti (A),A
+,36,,Active biologice de natura stocurilor,A
+,361,,Active biologice de natura stocurilor (A),A
+,368,,Diferente de pret la active biologice de natura st,B
+,37,,MaRFURI,A
+,371,,Marfuri (A),A
+,378,,Diferente de pret la marfuri (A/P),B
+,38,,Ambalaje,A
+,381,,Ambalaje (A),A
+,388,,Diferente de pret la ambalaje (A/P),B
+,39,,Ajustari pentru deprecierea stocurilor si producti,A
+,391,,Ajustari pentru deprecierea materiilor prime (P),P
+,392,,Ajustari pentru deprecierea materialelor,A
+,3921,,Ajustari pentru deprecierea materialelor consumabi,P
+,3922,,Ajustari pentru deprecierea materialelor de natura,P
+,393,,Ajustari pentru deprecierea productiei in curs de,P
+,394,,Ajustari pentru deprecierea produselor,A
+,3941,,Ajustari pentru deprecierea semifabricatelor (P),P
+,3945,,Ajustari pentru deprecierea produselor finite (P),P
+,3946,,Ajustari pentru deprecierea produselor reziduale (,P
+,3947,,Ajustari pentru deprecierea produselor agricole (P,P
+,395,,Ajustari pentru deprecierea stocurilor aflate la t,A
+,3951,,Ajustari pentru deprecierea materiilor si material,P
+,3952,,Ajustari pentru deprecierea semifabricatelor aflat,P
+,3953,,Ajustari pentru deprecierea produselor finite afla,P
+,3954,,Ajustari pentru deprecierea produselor reziduale a,P
+,3955,,Ajustari pentru deprecierea produselor agricole af,P
+,3956,,Ajustari pentru deprecierea activelor biologice de,P
+,3957,,Ajustari pentru deprecierea marfurilor aflate la t,P
+,3958,,Ajustari pentru deprecierea ambalajelor aflate la,P
+,396,,Ajustari pentru deprecierea activelor biologice de,P
+,397,,Ajustari pentru deprecierea marfurilor (P),P
+,398,,Ajustari pentru deprecierea ambalajelor (P),P
+,4,,Conturi de terti,P
+,40,,Furnizori si conturi asimilate,P
+,401,,Furnizori (P),P
+,403,,Efecte de platit (P),P
+,404,,Furnizori de imobilizari (P),P
+,405,,Efecte de platit pentru imobilizari (P),P
+,408,,Furnizori - facturi nesosite (P),P
+,409,,Furnizori - debitori,A
+,4091,,Furnizori - debitori pentru cumparari de bunuri de,A
+,4092,,Furnizori - debitori pentru prestari de servicii (,A
+,4093,,Avansuri acordate pentru imobilizari corporale (A),A
+,4094,,Avansuri acordate pentru imobilizari necorporale (,A
+,41,,Clienti si conturi asimilate,A
+,411,,Clienti,A
+,4111,,Clienti (A),A
+,4118,,Clienti incerti sau in litigiu (A),A
+,413,,Efecte de primit de la clienti (A),A
+,418,,Clienti - facturi de intocmit (A),A
+,419,,Clienti - creditori (P),P
+,419.01,,IOANA CRISTINA MARIN,P
+,42,,Personal si conturi asimilate,P
+,421,,Personal - salarii datorate (P),P
+,423,,Personal - ajutoare materiale datorate (P),P
+,424,,Prime reprezentând participarea personalului la pr,P
+,425,,Avansuri acordate personalului (A),A
+,426,,Drepturi de personal neridicate (P),P
+,427,,Retineri din salarii datorate tertilor (P),P
+,428,,Alte datorii si creante in legatura cu personalul,P
+,4281,,Alte datorii in legatura cu personalul (P),P
+,4282,,Alte creante in legatura cu personalul (A),A
+,43,,"Asigurari sociale, protectia sociala si conturi as",P
+,431,,Asigurari sociale,P
+,4311,,Contributia unitatii la asigurarile sociale (P),P
+,4311.01,,Contributia unitatii la asigurarile sociale (p),P
+,4311.02,,Fond de risc si accident,B
+,4312,,Contributia personalului la asigurarile sociale (P,P
+,4313,,Contributia angajatorului pentru asigurarile socia,B
+,4313.01,,Contributia angajatorului pentru asigurarile socia,B
+,4313.02,,Contributii sanatate din FNUASS,B
+,4313.03,,Contributii pentru concedii medicale,B
+,4314,,Contributia angajatilor pentru asigurarile sociale,P
+,4315,,Contributia de asigurari sociale (P),P
+,4316,,Contributia de asigurari sociale de sanatate (P),P
+,436,,Contributia asiguratorie pentru munca (P),P
+,437,,Ajutor de somaj,P
+,4371,,Contributia unitatii la fondul de somaj (P),P
+,4372,,Contributia personalului la fondul de somaj (P),P
+,4373,,Fond de garantare salarii,B
+,438,,Alte datorii si creante sociale,P
+,4381,,Alte datorii sociale (P),P
+,4382,,Alte creante sociale (A),A
+,44,,"Bugetul statului, fonduri speciale si conturi asim",P
+,441,,Impozitul pe profit/venit,P
+,4411,,Impozitul pe profit (P),B
+,4411.01,,Impozit pe profit curent,B
+,4411.02,,Impozit pe profit_esalonare,P
+,4415,,Impozitul specific unor activitati (P),P
+,4418,,Impozitul pe venit (P),B
+,442,,Taxa pe valoarea adaugata,P
+,4423,,TVA de plata (P),P
+,4424,,TVA de recuperat (A),A
+,4426,,TVA deductibila (A),A
+,4427,,TVA colectata (P),P
+,4428,,TVA neexigibila (A/P),B
+,4428A,,TVA neexigibila la achizitii,A
+,4428L,,TVA neexigibila la livrari,P
+,444,,Impozitul pe venituri de natura salariilor (P),P
+,445,,Subventii,A
+,4451,,Subventii guvernamentale (A),A
+,4452,,Imprumuturi nerambursabile cu caracter de subventi,A
+,4458,,Alte sume primite cu caracter de subventii (A),A
+,446,,"Alte impozite, taxe si varsaminte asimilate (P)",B
+,446.01,,Taxa reclama publicitara,B
+,446.02,,Impozit pe dividende,B
+,446.03,,Impozit pe cladiri,B
+,446.04,,Taxa pe teren proprietate de stat,B
+,446.05,,Taxa pentru mijloace de transport,B
+,446.06,,Impozit pe teren,B
+,446.07,,Impozit pe venit obt.in Romania de nerezidenti,B
+,446.08,,IMPOZIT EXPLOATARE FORESTIERA,P
+,446.09,,ACCIZE LA LIVRARI,P
+,446.10,,ACCIZE,P
+,446.11,,TAXE VAMALE,P
+,446.12,,COMISION VAMAL,P
+,446.13,,ALTE CHELT. VAMALE,P
+,446.14,,TVA IN VAMA,P
+,446.15,,Impozit pe veniturile nerezidentilor,P
+,446.16,,TVA DE RECUP DIN UE DKV,B
+,446.20,,IMPOZIT ALTE VENITURI,P
+,446.21,,Impozit venituri din cedarea folosintei bunurilor,P
+,447,,Fonduri speciale - taxe si varsaminte asimilate (P,B
+,447.05,,Comision camera de munca,B
+,447.06,,Fond de garantare creante salariale,P
+,447.07,,Fond pers.cu handicap neangajate,B
+,447.08,,FOND DE MEDIU,P
+,447.09,,IMPOZIT CU RETINERE LA SURSA,P
+,447.10,,COTA ACHIZITII AGRICOLE,P
+,448,,Alte datorii si creante cu bugetul statului,P
+,4481,,Alte datorii fata de bugetul statului (P),P
+,4482,,Alte creante privind bugetul statului (A),A
+,45,,Grup si actionari/asociati,P
+,451,,Decontari intre entitatile afiliate,P
+,4511,,Decontari intre entitatile afiliate (A/P),B
+,4511.01,,Decontari intre entitatile afiliate - furnizori,S
+,4511.02,,Decontari intre entitatile afiliate - clienti,S
+,4518,,Dobânzi aferente decontarilor intre entitatile afi,B
+,453,,Decontari cu entitatile asociate si entitatile con,P
+,4531,,Decontari cu entitatile asociate si entitatile con,B
+,4538,,Dobânzi aferente decontarilor cu entitatile asocia,B
+,455,,Sume datorate actionarilor/asociatilor,P
+,4551,,Actionari/Asociati - conturi curente (P),P
+,4551.01,,Actionari/asociati - conturi curente - LEI,P
+,4551.02,,Actionari/asociati - conturi curente - VALUTA,P
+,4558,,Actionari/Asociati - dobânzi la conturi curente (P,P
+,4558.01,,LEI_Actionari/Asociati - dobânzi la conturi curent,P
+,4558.02,,EURO_Actionari/Asociati - dobânzi la conturi cureP,P
+,456,,Decontari cu actionarii/asociatii privind capitalu,B
+,457,,Dividende de plata (P),P
+,458,,Decontari din operatiuni in participatie,P
+,4581,,Decontari din operatiuni in participatie - pasiv (,P
+,4582,,Decontari din operatiuni in participatie - activ (,A
+,46,,Debitori si creditori diversi,P
+,461,,Debitori diversi (A),A
+,461.20,,Garantie SGR achizitii,A
+,462,,Creditori diversi (P),P
+,462.01,,Creditori diversi,P
+,462.20,,Garantie SGR vanzari,P
+,462.21,,Creditori diversi-cedarea folosintei bunurilor,P
+,462.22,,Creditori diversi-drepturi de autor,P
+,463,,Creante reprezentand dividende repartizate in curs,A
+,467,,Datorii aferente distribuirilor interimare de divi,P
+,47,,"Conturi de subventii, regularizare si asimilate",P
+,471,,Cheltuieli inregistrate in avans (A),A
+,471.01,,Chelt in avans - asigurari,A
+,471.02,,Chelt in avans - licente transport,A
+,471.03,,Cheltuieli in avans - rovignete,A
+,471.04,,Cheltuieli in avans-taxe locale,A
+,471.05,,Alte cheltuieli in avans,A
+,471.06,,Cheltuieli in avans-program de contabilitate,A
+,471.07,,cheltuieli in avans - CERTIFICATUL DIGISIGN,A
+,472,,Venituri inregistrate in avans (P),P
+,473,,Decontari din operatiuni in curs de clarificare (A,B
+,473.01,,TVA DE RAMBURSAT,B
+,473.02,,CALENDY,B
+,475,,Subventii pentru investitii,P
+,4751,,Subventii guvernamentale pentru investitii (P),P
+,4752,,Imprumuturi nerambursabile cu caracter de subventi,P
+,4753,,Donatii pentru investitii (P),P
+,4754,,Plusuri de inventar de natura imobilizarilor (P),P
+,4758,,Alte sume primite cu caracter de subventii pentru,P
+,478,,Venituri in avans aferente activelor primite prin,P
+,48,,Decontari in cadrul unitatii,P
+,481,,Decontari intre unitate si subunitati (A/P),B
+,482,,Decontari intre subunitati (A/P),B
+,49,,Ajustari pentru deprecierea creantelor,P
+,491,,Ajustari pentru deprecierea creantelor - clienti (,P
+,495,,Ajustari pentru deprecierea creantelor - decontari,P
+,496,,Ajustari pentru deprecierea creantelor - debitori,P
+,5,,Conturi de trezorerie,A
+,50,,Investitii pe termen scurt,A
+,501,,Actiuni detinute la entitatile afiliate (A),A
+,505,,Obligatiuni emise si rascumparate (A),A
+,506,,Obligatiuni (A),A
+,507,,Certificate verzi primite (A),A
+,508,,Alte investitii pe termen scurt si creante asimila,A
+,5081,,Alte titluri de plasament (A),A
+,5088,,Dobânzi la obligatiuni si titluri de plasament (A),A
+,509,,Varsaminte de efectuat pentru investitiile pe term,A
+,5091,,Varsaminte de efectuat pentru actiunile detinute l,P
+,5092,,Varsaminte de efectuat pentru alte investitii pe t,P
+,51,,Conturi la banci,A
+,511,,Valori de incasat,A
+,5112,,Cecuri de incasat (A),A
+,5113,,Efecte de incasat (A),A
+,5114,,Efecte remise spre scontare (A),A
+,512,,Conturi curente la banci,A
+,5121,,Conturi la banci in lei (A),B
+,5121.01,,Conturi la banci in lei,A
+,5121.06,,Banca Compensari,A
+,5124,,Conturi la banci in valuta (A),A
+,5124.01,,BANCA EURO,A
+,5124.02,,BANCA LIRA,A
+,5124.03,,BANCA DOLAR,A
+,5124.04,,BANCA FRANC,A
+,5124.20,,CARD EURO,A
+,5124.30,,DEPOZITE EURO,A
+,5124.40,,GARANTII DE BUNA EXECUTIE EURO,A
+,5124.50,,DISPONIBIL CREDITE EURO,A
+,5124.60,,COMPENSARI VALUTA,A
+,5125,,Sume in curs de decontare (A),B
+,5126,,Conturi la banci in lei - TVA defalcat (A),A
+,5127,,Conturi la banci in valuta - TVA defalcat (A),A
+,518,,Dobânzi,A
+,5186,,Dobânzi de platit (P),P
+,5187,,Dobânzi de incasat (A),A
+,519,,Credite bancare pe termen scurt,A
+,5191,,Credite bancare pe termen scurt (P),P
+,5191.01,,LINIE DE CREDIT LEI,P
+,5191.02,,LINIE DE CREDIT EURO,P
+,5191.03,,LINIE DE CREDIT LIRA,P
+,5191.04,,LINIE DE CREDIT DOLAR,P
+,5191.05,,LINIE DE CREDIT FRANC,P
+,5192,,Credite bancare pe termen scurt nerambursate la sc,P
+,5193,,Credite externe guvernamentale (P),P
+,5194,,Credite externe garantate de stat (P),P
+,5195,,Credite externe garantate de banci (P),P
+,5196,,Credite de la Trezoreria Statului (P),P
+,5197,,Credite interne garantate de stat (P),P
+,5198,,Dobânzi aferente creditelor bancare pe termen scur,P
+,53,,Casa,A
+,531,,Casa,A
+,5311,,Casa in lei (A),A
+,5314,,Casa in valuta (A),A
+,5314.01,,CASA IN DEVIZE-EURO,A
+,5314.02,,CASA IN DEVIZE-LIRA,A
+,5314.03,,CASA IN DEVIZE-DOLAR,A
+,5314.04,,CASA IN DEVIZE-FRANC,A
+,532,,Alte valori,A
+,5321,,Timbre fiscale si postale (A),A
+,5322,,Bilete de tratament si odihna (A),A
+,5323,,Tichete si bilete de calatorie (A),A
+,5328,,Alte valori (A),A
+,54,,Acreditive,A
+,541,,Acreditive,A
+,5411,,Acreditive in lei (A),A
+,5414,,Acreditive in valuta (A),A
+,542,,Avansuri de trezorerie (A),A
+,58,,Viramente interne,A
+,581,,Viramente interne (A/P),B
+,59,,Ajustari pentru pierderea de valoare a conturilor,A
+,591,,Ajustari pentru pierderea de valoare a actiunilor,P
+,595,,Ajustari pentru pierderea de valoare a obligatiuni,P
+,596,,Ajustari pentru pierderea de valoare a obligatiuni,P
+,598,,Ajustari pentru pierderea de valoare a altor inves,P
+,6,,Conturi de cheltuieli,A
+,60,,Cheltuieli privind stocurile,A
+,601,,Cheltuieli cu materiile prime,A
+,602,,Cheltuieli cu materialele consumabile,A
+,6021,,Cheltuieli cu materialele auxiliare,A
+,6021.01,,Cheltuieli cu materialele auxiliare-deductibil,A
+,6021.02,,Cheltuieli cu materialele auxiliare-nedeductibil,A
+,6022,,Cheltuieli privind combustibilii,A
+,6022.01,,Chelt.combustibili-deductibil,A
+,6022.02,,Chelt.combustibili-nedeductibil,A
+,6023,,Cheltuieli privind materialele pentru ambalat,A
+,6024,,Cheltuieli privind piesele de schimb,A
+,6024.01,,Cheltuieli privind piesele de schimb-deductibil,A
+,6024.02,,Cheltuieli privind piesele de schimb-nedeductibil,A
+,6025,,Cheltuieli privind semintele si materialele de pla,A
+,6026,,Cheltuieli privind furajele,A
+,6028,,Cheltuieli privind alte materiale consumabile,A
+,6028.01,,Cheltuieli privind alte materiale consumabile,A
+,603,,Cheltuieli privind materialele de natura obiectelo,A
+,604,,Cheltuieli privind materialele nestocate,A
+,604.01,,Cheltuieli privind materialele nestocate-deductibi,A
+,604.02,,Cheltuieli privind materialele nestocate-nededucti,A
+,605,,Cheltuieli privind utilitatile,A
+,6051,,Cheltuieli privind consumul de energie,A
+,6051.01,,Cheltuieli privind consumul de energie,A
+,6052,,Cheltuieli privind consumul de apa,A
+,6052.01,,Cheltuieli privind consumul de apa,A
+,6053,,Cheltuieli privind consumul de gaze naturale,A
+,6053.01,,Cheltuieli privind consumul de gaze naturale,A
+,6058,,Cheltuieli cu alte utilitati,A
+,606,,Cheltuieli privind activele biologice de natura st,A
+,607,,Cheltuieli privind marfurile,A
+,608,,Cheltuieli privind ambalajele,A
+,609,,Reduceri comerciale primite,A
+,609.01,,Reduceri comerciale primite,A
+,61,,Cheltuieli cu serviciile executate de terti,A
+,611,,Cheltuieli cu intretinerea si reparatiile,A
+,611.01,,CHELTUIELI CU REPARATIILE DED FISCAL,A
+,611.02,,CHELT CU REPARATIILE NEDED FISCAL,A
+,612,,"Cheltuieli cu redeventele, locatiile de gestiune s",A
+,6121,,Cheltuieli cu redeventele,A
+,6122,,Cheltuieli cu locatiile de gestiune,A
+,6123,,Cheltuieli cu chiriile,A
+,6123.01,,Cheltuieli cu chiriile-deductibile fiscal,A
+,6123.02,,Cheltuieli cu chiriile-nedeductibile fiscal,A
+,613,,Cheltuieli cu primele de asigurare,A
+,613.01,,Cheltuieieli cu primele de asigurare_deductibil,A
+,613.02,,Cheltuieieli cu primele de asigurare_nedeductibil,A
+,614,,Cheltuieli cu studiile si cercetarile,A
+,615,,Cheltuieli cu pregatirea personalului,A
+,616,,Cheltuieli aferente drepturilor de proprietate int,A
+,617,,Cheltuieli de management,A
+,618,,Cheltuieli de consultanta,A
+,62,,Cheltuieli cu alte servicii executate de terti,A
+,621,,Cheltuieli cu colaboratorii,A
+,622,,Cheltuieli privind comisioanele si onorariile,A
+,622.01,,Cheltuieli comisioanele _ded fiscal,A
+,622.02,,Cheltuieli comisioanele _neded fiscal,A
+,623,,"Cheltuieli de protocol, reclama si publicitate",A
+,6231,,Cheltuieli de protocol (A),A
+,6231.01,,Cheltuieli de protocol-deductibile,A
+,6231.02,,Cheltuieli de protocol -Nedeductibil,A
+,6232,,Cheltuieli de reclama si publicitate (A),A
+,624,,Cheltuieli cu transportul de bunuri si personal,A
+,625,,"Cheltuieli cu deplasari, detasari si transferari",A
+,626,,Cheltuieli postale si taxe de telecomunicatii,A
+,626.01,,Cheltuieli postale si taxe de telecomunicatii,A
+,627,,Cheltuieli cu serviciile bancare si asimilate,A
+,628,,Alte cheltuieli cu serviciile executate de terti,A
+,628.01,,Prestari servicii directe,A
+,628.02,,PRESTARI SERVICII DIRECTE NEDEDUCTIBILE,A
+,63,,"Cheltuieli cu alte impozite, taxe si varsaminte as",A
+,635,,"Cheltuieli cu alte impozite, taxe si varsaminte as",A
+,635.01,,"Cheltuieli cu alte impozite, taxe si varsaminte as",A
+,635.02,,"Cheltuieli cu alte impozite, taxe si varsaminte as",A
+,64,,Cheltuieli cu personalul,A
+,641,,Cheltuieli cu salariile personalului,A
+,642,,Cheltuieli cu avantajele in natura si tichetele ac,A
+,6421,,Cheltuieli cu avantajele in natura acordate salari,A
+,6422,,Cheltuieli cu tichetele acordate salariatilor,A
+,643,,Cheltuieli cu remunerarea in instrumente de capita,A
+,644,,Cheltuieli cu primele reprezentând participarea pe,A
+,645,,Cheltuieli privind asigurarile si protectia social,A
+,6451,,Cheltuieli privind contributia unitatii la asigura,A
+,6452,,Cheltuieli privind contributia unitatii pentru aju,A
+,6453,,Cheltuieli privind contributia angajatorului pentr,A
+,6455,,Cheltuieli privind contributia unitatii la asigura,A
+,6456,,Cheltuieli privind contributia unitatii la fonduri,A
+,6457,,Cheltuieli privind contributia unitatii la primele,A
+,6458,,Alte cheltuieli privind asigurarile si protectia s,A
+,6458.20,,Premii acordate salariatilor de sarbatori (P),P
+,6458.21,,Hrana acordata pentru angajatii proprii (P),P
+,646,,Cheltuieli privind contrib.asig.pt.munca (A),A
+,6461,,Cheltuieli privind contributia asiguratorie pentru,A
+,6462,,Cheltuieli privind contributia asiguratorie pentru,A
+,65,,Alte cheltuieli de exploatare,A
+,652,,Cheltuieli cu protectia mediului inconjurator,A
+,653,,Cotizatii si contributii datorate de pj fara scop,A
+,6531,,Cotizatii si contributii la organisme din tara (A),A
+,6532,,Cotizatii si contributii la organisme internationa,A
+,654,,Pierderi din creante si debitori diversi,A
+,654.01,,Pierderi din creante_deductibile fiscal,A
+,654.02,,Pierderi din creante_nedeductibile fiscal,A
+,655,,Cheltuieli din reevaluarea imobilizarilor corporal,A
+,658,,Alte cheltuieli de exploatare,A
+,6581,,"Despagubiri, amenzi si penalitati",A
+,6581.01,,"Despagub, amenzi, penalit - deductibile fiscal",A
+,6581.02,,"Despagub, amenzi, penalit - nedeductibile fiscal",A
+,6582,,Donatii acordate,A
+,6583,,Cheltuieli privind activele cedate si alte operati,A
+,6584,,Chelt.cu sumele sau bunurile acordate ca sponsoriz,A
+,6584.01,,Cheltuieli cu sumele sau bunurile acordate ca spo,A
+,6584.02,,Cheltuieli cu sumele sau bunurile acordate ca spo,A
+,6586,,Cheltuieli reprezentând transferuri si contributii,A
+,6587,,Cheltuieli privind calamitatile si alte evenimente,A
+,6588,,Alte cheltuieli de exploatare,A
+,6588.01,,Alte cheltuieli de exploatare-ded fiscal,A
+,6588.02,,Alte cheltuieli de exploatare-neded fiscal,A
+,66,,Cheltuieli financiare,A
+,663,,Pierderi din creante legate de participatii,A
+,664,,Cheltuieli privind investitiile financiare cedate,A
+,6641,,Cheltuieli privind imobilizarile financiare cedate,A
+,6642,,Pierderi din investitiile pe termen scurt cedate,A
+,665,,Cheltuieli din diferente de curs valutar monetare,A
+,6651,,Diferente nefavorabile de curs valutar legate de,A
+,6651.01,,DIFERENTE DE CURS DED. FISCAL,A
+,6651.02,,DIFERENTE DE CURS NEDED. FISCAL,A
+,6652,,Diferente nefavorabile de curs valutar din evaluar,A
+,666,,Cheltuieli privind dobânzile,A
+,666.01,,Cheltuieli privind dobânzile-deductibil,A
+,666.02,,Cheltuieli privind dobânzile-nedeductibil,A
+,667,,Cheltuieli privind sconturile acordate,A
+,668,,Alte cheltuieli financiare,A
+,68,,"Cheltuieli cu amortizarile, provizioanele si ajust",A
+,681,,"Cheltuieli de exploatare privind amortizarile, pro",A
+,6811,,Cheltuieli de exploatare privind amortizarea imobi,A
+,6811.01,,Cheltuieli de exploatare privind amortizarea imobi,A
+,6811.02,,Cheltuieli de exploatare privind amortizarea imobi,A
+,6812,,Cheltuieli de exploatare privind provizioanele,A
+,6813,,Cheltuieli de exploatare privind ajustarile pentru,A
+,6814,,Cheltuieli de exploatare privind ajustarile pentru,A
+,6814.01,,Cheltuieli de exploatare privind ajustarile_DED FL,A
+,6814.02,,Cheltuieli de exploatare privind ajustaril_NED FIL,A
+,6817,,Cheltuieli de exploatare privind ajustarile pentru,A
+,686,,"Cheltuieli financiare privind amortizarile, proviz",A
+,6861,,Cheltuieli privind actualizarea provizioanelor,A
+,6863,,Cheltuieli financiare privind ajustarile pentru pi,A
+,6864,,Cheltuieli financiare privind ajustarile pentru pi,A
+,6868,,Cheltuieli financiare privind amortizarea primelor,A
+,69,,Cheltuieli cu impozitul pe profit si alte impozite,A
+,691,,Cheltuieli cu impozitul pe profit,A
+,691.01,,CHELT.CU IMP.PE PROFIT,A
+,691.02,,CHELT.CU IMP. MINIM,A
+,694,,Cheltuieli cu impozitul pe profit rezultat din dec,A
+,695,,Cheltuieli cu impozitul specific unor activitati (,A
+,697,,Cheltuieli cu impozitul pe profit la nivelul impoz,A
+,698,,Cheltuieli cu impozitul pe venit si cu alte impozi,A
+,7,,Conturi de venituri,P
+,70,,Cifra de afaceri neta,P
+,701,,"Venituri din vânzarea produselor finite, produselo",P
+,7015,,Venituri din vânzarea produselor finite,P
+,7017,,Venituri din vânzarea produselor agricole,P
+,7018,,Venituri din vânzarea activelor biologice de natur,P
+,702,,Venituri din vânzarea semifabricatelor,P
+,703,,Venituri din vânzarea produselor reziduale,P
+,704,,Venituri din servicii prestate,P
+,704.01,,Venituri din activit de evid contabila,P
+,704.02,,Venituri din activitatea de audit financiar,P
+,705,,Venituri din studii si cercetari,P
+,706,,"Venituri din redevente, locatii de gestiune si chi",P
+,707,,Venituri din vânzarea marfurilor,P
+,707.01,,Venituri din activitatea financiar contabila,P
+,708,,Venituri din activitati diverse,P
+,709,,Reduceri comerciale acordate,P
+,71,,Venituri aferente costului productiei in curs de e,P
+,711,,Venituri aferente costurilor stocurilor de produse,P
+,712,,Venituri aferente costurilor serviciilor in curs d,P
+,72,,Venituri din productia de imobilizari,P
+,721,,Venituri din productia de imobilizari necorporale,P
+,722,,Venituri din productia de imobilizari corporale,P
+,725,,Venituri din productia de investitii imobiliare,P
+,73,,VENITURI DIN ACTIVITATILE FARA SCOP PATRIMONIAL (P,P
+,731,,"Venituri din cotizatiile membrilor, contributiile",P
+,7311,,Venituri din cotizatiile si taxele de înscriere al,P
+,7312,,Venituri din contributiile banesti sau în natura a,P
+,733,,Venituri din sponsorizari,P
+,7331,,Venituri din donatii,P
+,7332,,Venituri din sponsorizari,P
+,738,,Alte venituri din activitatile fara scop patrimoni,P
+,7388,,Alte venituri din activitatile fara scop patrimoni,P
+,739,,Venituri din activitatea fara scop lucrativ,P
+,74,,Venituri din subventii de exploatare,P
+,741,,Venituri din subventii de exploatare,P
+,7411,,Venituri din subventii de exploatare aferente cifr,P
+,7412,,Venituri din subventii de exploatare pentru materi,P
+,7413,,Venituri din subventii de exploatare pentru alte c,P
+,7414,,Venituri din subventii de exploatare pentru plata,P
+,7415,,Venituri din subventii de exploatare pentru asigur,P
+,7416,,Venituri din subventii de exploatare pentru alte c,P
+,7417,,Venituri din subventii de exploatare in caz de cal,P
+,7418,,Venituri din subventii de exploatare pentru dobând,P
+,7419,,Venituri din subventii de exploatare aferente alto,P
+,75,,Alte venituri din exploatare,P
+,754,,Venituri din creante reactivate si debitori divers,P
+,755,,Venituri din reevaluarea imobilizarilor corporale,P
+,758,,Alte venituri din exploatare,P
+,7581,,"Venituri din despagubiri, amenzi si penalitati",P
+,7582,,Venituri din donatii primite,P
+,7583,,Venituri din vânzarea activelor si alte operatiuni,P
+,7584,,Venituri din subventii pentru investitii,P
+,7588,,Alte venituri din exploatare,P
+,76,,Venituri financiare,P
+,761,,Venituri din imobilizari financiare,P
+,7611,,Venituri din actiuni detinute la entitatile afilia,P
+,7612,,Venituri din actiuni detinute la entitati asociate,P
+,7613,,Venituri din actiuni detinute la entitati controla,P
+,7615,,Venituri din alte imobilizari financiare,P
+,762,,Venituri din investitii financiare pe termen scurt,P
+,764,,Venituri din investitii financiare cedate,P
+,7641,,Venituri din imobilizari financiare cedate,P
+,7642,,Câstiguri din investitii pe termen scurt cedate,P
+,765,,Venituri din diferente de curs valutar,P
+,7651,,Diferente favorabile de curs valutar legate de ele,P
+,7651.01,,Diferente favorabile de curs valutar DED. FISCAL,P
+,7651.02,,Diferente favorabile de curs valutar NEDED. FISCAL,P
+,7652,,Diferente favorabile de curs valutar din evaluarea,P
+,766,,Venituri din dobânzi,P
+,767,,Venituri din sconturi obtinute,P
+,768,,Alte venituri financiare,P
+,78,,Venituri din provizioane si ajustari pentru deprec,P
+,781,,Venituri din provizioane si ajustari pentru deprec,P
+,7812,,Venituri din provizioane,P
+,7813,,Venituri din ajustari pentru deprecierea imobiliza,P
+,7814,,Venituri din ajustari pentru deprecierea activelor,P
+,7815,,Venituri din fondul comercial negativ,P
+,786,,Venituri financiare din ajustari pentru pierdere d,P
+,7863,,Venituri financiare din ajustari pentru pierderea,P
+,7864,,Venituri financiare din ajustari pentru pierderea,P
+,794,,Venituri din impozitul pe profit rezultat din deco,P
+,8,,Conturi speciale,A
+,80,,Conturi in afara bilantului,A
+,801,,Angajamente acordate,A
+,8011,,Giruri si garantii acordate,A
+,8018,,Alte angajamente acordate,A
+,802,,Angajamente primite,A
+,8021,,Giruri si garantii primite,A
+,8028,,Alte angajamente primite,A
+,803,,Alte conturi in afara bilantului,A
+,8031,,Imobilizari corporale luate cu chirie,A
+,8032,,Valori materiale primite spre prelucrare sau repar,A
+,8033,,Valori materiale primite in pastrare sau custodie,A
+,8034,,"Debitori scosi din activ, urmariti in continuare",A
+,8035,,Stocuri de natura obiectelor de inventar date in f,A
+,8036,,"Redevente, locatii de gestiune, chirii si alte dat",A
+,8037,,Efecte scontate neajunse la scadenta,A
+,8038,,"Bunuri primite in administrare, concesiune si cu c",A
+,8039,,Alte valori in afara bilantului,A
+,805,,Dobânzi aferente contractelor de leasing si altor,A
+,8051,,Dobânzi de platit,A
+,8052,,Dobânzi de incasat,A
+,806,,Certificate de emisii de gaze cu efect de sera,A
+,807,,Active contingente,A
+,808,,Datorii contingente,A
+,809,,Creante preluate prin cesionare,A
+,89,,Bilant,A
+,891,,Bilant de deschidere,A
+,892,,Bilant de inchidere,A
+,9,,Conturi de gestiune,A
+,90,,Decontari interne,A
+,901,,Decontari interne privind cheltuielile,A
+,902,,Decontari interne privind productia obtinuta,A
+,903,,Decontari interne privind diferentele de pret,A
+,92,,Conturi de calculatie,A
+,921,,Cheltuielile activitatii de baza,A
+,922,,Cheltuielile activitatilor auxiliare,A
+,923,,Cheltuieli indirecte de productie,A
+,924,,Cheltuieli generale de administratie,A
+,925,,Cheltuieli de desfacere,A
+,93,,Costul productiei,A
+,931,,Costul productiei obtinute,A
+,933,,Costul productiei in curs de executie,A

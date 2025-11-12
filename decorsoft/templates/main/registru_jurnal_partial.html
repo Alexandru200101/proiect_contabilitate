@@ -1,0 +1,31 @@
+<div class="registru-jurnal-container">
+    <h2>Registru Jurnal</h2>
+
+    <form id="registruForm">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Adaugă înregistrare</button>
+    </form>
+
+    <hr>
+
+    <h3>Lista înregistrărilor</h3>
+    <table class="table">
+        <tr>
+            <th>Document</th>
+            <th>Nr.</th>
+            <th>Suma</th>
+            <th>Explicații</th>
+        </tr>
+        {% for r in registre %}
+        <tr>
+            <td>{{ r.feldoc }}</td>
+            <td>{{ r.nrdoc }}</td>
+            <td>{{ r.suma }}</td>
+            <td>{{ r.explicatii }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">Nicio înregistrare încă.</td></tr>
+        {% endfor %}
+    </table>
+</div>

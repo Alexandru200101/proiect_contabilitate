@@ -1,0 +1,138 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Decorsoft</title>
+    <link rel="stylesheet" href="{% static 'main/css/admin_dashboard.css' %}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- === ELEMENTE FLOTANTE PENTRU FUNDAL === -->
+    <div class="floating-elements">
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+    </div>
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>Decorsoft Admin</h2>
+                <p>Control Panel</p>
+            </div>
+            
+            <ul class="nav-links">
+                <li><a href="#" class="active"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li><a href="#"><i class="fas fa-building"></i> Firme</a></li>
+                <li><a href="#"><i class="fas fa-users"></i> Utilizatori</a></li>
+                <li><a href="#"><i class="fas fa-chart-bar"></i> Rapoarte</a></li>
+                <li><a href="#"><i class="fas fa-cog"></i> Setări</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <div>
+                    <h1>Admin Dashboard</h1>
+                    <p>Bun venit, <strong>{{ user.denumire }}</strong>!</p>
+                </div>
+                <div class="user-info">
+                    <span>{{ user.email }}</span>
+                    <a href="{% url 'admin_logout' %}" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+
+            <!-- 🔍 Bara de căutare firme -->
+            <form method="get" class="search-bar">
+                <input type="text" name="q" placeholder="Caută firmă după nume sau CUI..." value="{{ query }}">
+                <button type="submit"><i class="fas fa-search"></i> Caută</button>
+            </form>
+
+            <!-- 🔎 Rezultatele căutării -->
+            {% if firme %}
+                <h3>Rezultate căutare:</h3>
+                <ul class="results">
+                    {% for firma in firme %}
+                        <li>
+                            <a href="{% url 'admin_dashboard_firma' firma.id %}">
+                                <strong>{{ firma.denumire }}</strong> — CUI: {{ firma.cui }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% elif query %}
+                <p>Nicio firmă găsită pentru "<strong>{{ query }}</strong>"</p>
+            {% endif %}
+
+            <!-- Messages -->
+            <div class="messages">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="cards-grid">
+                <div class="card">
+                    <h3><i class="fas fa-chart-line"></i> Statistici</h3>
+                    <p>Vizualizează statisticile generale ale platformei</p>
+                </div>
+                <div class="card">
+                    <h3><i class="fas fa-bell"></i> Notificări</h3>
+                    <p>Verifică cele mai recente notificări și alerte</p>
+                </div>
+                <div class="card">
+                    <h3><i class="fas fa-history"></i> Activitate Recentă</h3>
+                    <p>Urmărește activitatea recentă din sistem</p>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="buttons-grid">
+                <a href="{% url 'inregistrare_firma' %}" class="action-btn green">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Înregistrare Firmă</span>
+                </a>
+                
+                <a href="{% url 'afisare_firme' %}" class="action-btn blue">
+                    <i class="fas fa-list"></i>
+                    <span>Afisare firme</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // interactivitate
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.nav-links a');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            const buttons = document.querySelectorAll('.action-btn');
+            buttons.forEach(button => {
+                button.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-5px)';
+                });
+                button.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
