@@ -19,6 +19,7 @@ urlpatterns = [
     path('adauga-registru-ajax/', views.adauga_registru_ajax, name='adauga_registru_ajax'),
     path('modifica-registru-ajax/', views.modifica_registru_ajax, name='modifica_registru_ajax'),
     path('sterge-registru-ajax/', views.sterge_registru_ajax, name='sterge_registru_ajax'),
+    path('export-registru/', views.export_registru, name='export_registru'),
 
     # 🏢 Administrare firme (doar pentru admin)
     path('admin-login/', views.admin_login_view, name='admin_login'),

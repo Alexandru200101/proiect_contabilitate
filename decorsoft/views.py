@@ -1,20 +1,20 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect,get_object_or_404
 from .forms import SignupForm, LoginForm,InregistrareFirmaForm,RegistruJurnalForm
-from .models import Firma,RegistruJurnal
-from django.contrib.auth.hashers import make_password, check_password
-from django.contrib.auth import authenticate, login
+from .models import Firma,RegistruJurnal,PlanConturi
+from django.contrib.auth import authenticate, login,logout
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
-from django.contrib.auth import logout
-from django.db.models import Q
-from django.shortcuts import get_object_or_404
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Sum
+from django.db.models import Q,Sum
+from django.http import JsonResponse,HttpResponseBadRequest, HttpResponseForbidden,HttpResponse
 from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_protect
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden
+import csv
+from io import BytesIO
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+
 
 
 
@@ -83,12 +83,14 @@ def dashboard_firma_jurnal(request):
     
     # Totalul folosește doar suma, pentru debit și credit
     total_suma = registre.aggregate(total=Sum('suma'))['total'] or 0
+    conturi = PlanConturi.objects.all()
 
     return render(request, 'main/dashboard_firma_jurnal.html', {
         'registre': registre,
         'total_debit': total_suma,   # folosim suma
         'total_credit': total_suma,  # folosim suma
-        'total_suma': total_suma
+        'total_suma': total_suma,
+        'conturi': conturi
     })
 
 # Formular adaugare operatiune
@@ -176,6 +178,63 @@ def modifica_registru_ajax(request):
         })
     else:
         return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+    
+#Export registru jurnal CSV si PDF
+@login_required(login_url='login')
+def export_registru(request):
+    format_ = request.GET.get('format')
+    ids = request.GET.get('ids', '')
+
+    if not ids:
+        return HttpResponse("Nicio operațiune selectată.", status=400)
+
+    id_list = ids.split(',')
+    operatiuni = RegistruJurnal.objects.filter(id__in=id_list, firma=request.user)
+
+    if format_ == 'csv':
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="operatiuni.csv"'
+        writer = csv.writer(response)
+        writer.writerow(['Nr Doc', 'Tip Doc', 'Data', 'Debit', 'Credit', 'Suma', 'Explicatii'])
+        for op in operatiuni:
+            writer.writerow([op.nrdoc, op.feldoc, op.datadoc.strftime('%Y-%m-%d'), op.debit, op.credit, op.suma, op.explicatii])
+        return response
+
+    elif format_ == 'pdf':
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4)
+        styles = getSampleStyleSheet()
+        data = [['Nr Doc', 'Tip Doc', 'Data', 'Debit', 'Credit', 'Suma', 'Explicații']]
+        for op in operatiuni:
+            data.append([
+                op.nrdoc,
+                op.feldoc,
+                op.datadoc.strftime('%Y-%m-%d') if op.datadoc else '',
+                op.debit,
+                op.credit,
+                str(op.suma),
+                op.explicatii or ''
+            ])
+
+        table = Table(data)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.lightblue),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ]))
+        doc.build([Paragraph("Registru Jurnal - Export", styles['Title']), table])
+        pdf = buffer.getvalue()
+        buffer.close()
+
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="operatiuni.pdf"'
+        response.write(pdf)
+        return response
+
+    else:
+        return HttpResponse("Format invalid", status=400)
 
 
 
