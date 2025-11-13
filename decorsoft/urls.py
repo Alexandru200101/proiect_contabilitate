@@ -21,6 +21,11 @@ urlpatterns = [
     path('sterge-registru-ajax/', views.sterge_registru_ajax, name='sterge_registru_ajax'),
     path('export-registru/', views.export_registru, name='export_registru'),
 
+    # Gestionare rapoarte firmă
+    path('dashboard-firma-rapoarte/', views.dashboard_firma_rapoarte, name='dashboard_firma_rapoarte'),
+    # path('rapoarte/fisa-cont/<str:cont_id>/', views.fisa_cont, name='fisa_cont'),
+
+
     # 🏢 Administrare firme (doar pentru admin)
     path('admin-login/', views.admin_login_view, name='admin_login'),
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),

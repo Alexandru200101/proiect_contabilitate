@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapoarte Firmă | Nexus Business Suite</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <style>
+        :root {
+            --primary-dark: #0a0a0a;
+            --secondary-dark: #1a1a1a;
+            --accent-red: #ff2e2e;
+            --accent-red-light: #ff6b6b;
+            --cream: #f8f4e5;
+            --cream-light: #fffdf5;
+            --gold: #ffd700;
+            --green: #4CAF50;
+            --blue: #2196F3;
+            --purple: #9c27b0;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5);
+            --gradient: linear-gradient(135deg, var(--accent-red) 0%, var(--accent-red-light) 100%);
+            --gradient-gold: linear-gradient(135deg, var(--gold) 0%, #ffed4e 100%);
+            --gradient-purple: linear-gradient(135deg, var(--purple) 0%, #ba68c8 100%);
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--primary-dark);
+            color: var(--cream);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 3rem;
+            border-bottom: 1px solid var(--glass-border);
+            background: var(--secondary-dark);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(20px);
+        }
+
+        .header-left h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            background: linear-gradient(45deg, var(--cream), var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .header-left p {
+            color: var(--cream);
+            opacity: 0.7;
+            font-size: 1.1rem;
+        }
+
+        .back-button {
+            background: var(--gradient);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .back-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .back-button:hover::before {
+            left: 100%;
+        }
+
+        /* Container Principal */
+        .dashboard-container {
+            padding: 2rem 3rem;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        /* Bară de acțiuni */
+        .actions-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            gap: 1.5rem;
+        }
+
+        .refresh-button {
+            background: var(--gradient-purple);
+            color: white;
+            border: none;
+            padding: 16px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .refresh-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .refresh-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .refresh-button:hover::before {
+            left: 100%;
+        }
+
+        .export-button {
+            background: var(--gradient);
+            color: white;
+            border: none;
+            padding: 16px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .export-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .export-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .export-button:hover::before {
+            left: 100%;
+        }
+
+        /* Statistici */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background: var(--secondary-dark);
+            padding: 2rem 1.5rem;
+            border-radius: 16px;
+            text-align: center;
+            border: 1px solid var(--glass-border);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        .stat-label {
+            color: var(--cream);
+            opacity: 0.7;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Tabele */
+        .table-container {
+            background: var(--secondary-dark);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 2.5rem;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(20px);
+            position: relative;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--glass-border);
+            background: linear-gradient(135deg, rgba(255, 46, 46, 0.2) 0%, rgba(255, 107, 107, 0.15) 100%);
+        }
+
+        .table-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--cream);
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .table-action-btn {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            color: var(--cream);
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+        }
+
+        .table-action-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .data-table thead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, rgba(255, 46, 46, 0.2) 0%, rgba(255, 107, 107, 0.15) 100%);
+            padding: 1.5rem 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--accent-red-light);
+            border-bottom: 2px solid var(--accent-red);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            position: relative;
+            backdrop-filter: blur(20px);
+        }
+
+        .data-table th:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 20%;
+            height: 60%;
+            width: 1px;
+            background: var(--glass-border);
+        }
+
+        .data-table td {
+            padding: 1.5rem 1rem;
+            border-bottom: 1px solid var(--glass-border);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .data-table tbody tr {
+            transition: var(--transition);
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+            transform: translateX(4px);
+        }
+
+        .data-table tbody tr:hover td {
+            background: transparent;
+        }
+
+        .data-table tbody tr:hover td::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background: var(--gradient);
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* Stiluri specifice pentru coloane */
+        .simbol-cell {
+            font-weight: 700;
+            color: var(--gold);
+            width: 100px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+        }
+
+        .tip-cell {
+            width: 80px;
+            text-align: center;
+        }
+
+        .tip-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tip-activ {
+            background: rgba(76, 175, 80, 0.2);
+            color: var(--green);
+            border: 1px solid rgba(76, 175, 80, 0.4);
+        }
+
+        .tip-pasiv {
+            background: rgba(33, 150, 243, 0.2);
+            color: var(--blue);
+            border: 1px solid rgba(33, 150, 243, 0.4);
+        }
+
+        .denumire-cell {
+            min-width: 250px;
+            max-width: 350px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .number-cell {
+            font-weight: 700;
+            text-align: right;
+            width: 140px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+        }
+
+        .debit-amount {
+            color: var(--green);
+        }
+
+        .credit-amount {
+            color: var(--accent-red-light);
+        }
+
+        .sold-debit-amount {
+            color: var(--gold);
+        }
+
+        .sold-credit-amount {
+            color: var(--blue);
+        }
+
+        .exceptional-sold {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 3px solid #ffc107;
+        }
+
+        .document-cell {
+            width: 110px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .date-cell {
+            text-align: center;
+            width: 130px;
+            font-weight: 600;
+            color: var(--cream-light);
+        }
+
+        .explicatii-cell {
+            min-width: 250px;
+            max-width: 350px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Stiluri pentru tabelul jurnal */
+        .jurnal-table-container {
+            overflow-x: auto;
+        }
+
+        .jurnal-table {
+            min-width: 1200px;
+        }
+
+        /* Stiluri pentru tabelul raport */
+        .raport-table-container {
+            overflow-x: auto;
+        }
+
+        .raport-table {
+            min-width: 1000px;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--cream);
+            opacity: 0.5;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.3;
+        }
+
+        .empty-state p {
+            font-size: 1.2rem;
+            font-weight: 300;
+        }
+
+        /* Indicatori pentru situații excepționale */
+        .exceptional-indicator {
+            display: inline-block;
+            margin-left: 8px;
+            padding: 2px 6px;
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .dashboard-container {
+                padding: 1.5rem;
+            }
+            
+            .table-container {
+                overflow-x: auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 1.5rem;
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .dashboard-container {
+                padding: 1rem;
+            }
+
+            .actions-bar {
+                flex-direction: column;
+            }
+
+            .stats-bar {
+                grid-template-columns: 1fr;
+            }
+
+            .table-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .table-actions {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* Stiluri pentru Select2 în tema dark */
+        .select2-container--default .select2-selection--single {
+            background: var(--primary-dark) !important;
+            border: 1px solid var(--glass-border) !important;
+            border-radius: 12px !important;
+            height: 52px !important;
+            padding: 14px 20px !important;
+            backdrop-filter: blur(10px) !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: var(--cream) !important;
+            line-height: 24px !important;
+            padding-left: 0 !important;
+            font-size: 1rem !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 50px !important;
+            right: 15px !important;
+        }
+
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background: var(--accent-red) !important;
+        }
+
+        .select2-container--default .select2-search--dropdown .select2-search__field {
+            background: var(--primary-dark) !important;
+            border: 1px solid var(--glass-border) !important;
+            color: var(--cream) !important;
+            border-radius: 8px !important;
+            padding: 12px !important;
+        }
+
+        .select2-dropdown {
+            background: var(--secondary-dark) !important;
+            border: 1px solid var(--glass-border) !important;
+            border-radius: 12px !important;
+            backdrop-filter: blur(20px) !important;
+            z-index: 10000 !important;
+        }
+
+        .select2-container--default .select2-results__option[aria-selected=true] {
+            background: rgba(255, 46, 46, 0.2) !important;
+        }
+
+        .select2-container--default .select2-results__option {
+            color: var(--cream) !important;
+            padding: 12px 16px !important;
+            transition: var(--transition) !important;
+        }
+
+        .select2-container--default .select2-results__option:hover {
+            background: rgba(255, 46, 46, 0.3) !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <h1>Rapoarte Firmă</h1>
+            <p>Dashboard complet cu rapoarte contabile</p>
+        </div>
+        <a href="{% url 'dashboard_firma' %}" class="back-button">
+            <i class="fas fa-arrow-left"></i>
+            Înapoi la Dashboard
+        </a>
+    </div>
+
+    <!-- Container Principal -->
+    <div class="dashboard-container">
+        <!-- Bară de acțiuni -->
+        <div class="actions-bar">
+            <button class="refresh-button" id="refreshDashboard">
+                <i class="fas fa-sync-alt"></i>
+                Reîmprospătează Datele
+            </button>
+            <button class="export-button" id="exportButton">
+                <i class="fas fa-download"></i>
+                Export Rapoarte
+            </button>
+        </div>
+
+        <!-- Statistici generale -->
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="stat-number">{{ total_operatiuni }}</div>
+                <div class="stat-label">Total Operațiuni</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">₡{{ total_general_debit }}</div>
+                <div class="stat-label">Total Debit</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">₡{{ total_general_credit }}</div>
+                <div class="stat-label">Total Credit</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ raport_final|length }}</div>
+                <div class="stat-label">Conturi cu Mișcări</div>
+            </div>
+        </div>
+
+        <!-- Tabel Raport Conturi -->
+        <div class="table-container">
+            <div class="table-header">
+                <h2 class="table-title">Raport pe Conturi</h2>
+                <div class="table-actions">
+                    <button class="table-action-btn" id="expandAllConturi">
+                        <i class="fas fa-expand"></i>
+                        Extinde toate
+                    </button>
+                    <button class="table-action-btn" id="collapseAllConturi">
+                        <i class="fas fa-compress"></i>
+                        Restrange toate
+                    </button>
+                </div>
+            </div>
+            <div class="raport-table-container">
+                <table class="data-table raport-table">
+                    <thead>
+                        <tr>
+                            <th class="simbol-cell">Simbol</th>
+                            <th class="tip-cell">Tip</th>
+                            <th class="denumire-cell">Denumire Cont</th>
+                            <th class="number-cell">Rulaj Debit</th>
+                            <th class="number-cell">Rulaj Credit</th>
+                            <th class="number-cell">Sold Final Debitor</th>
+                            <th class="number-cell">Sold Final Creditor</th>
+                        </tr>
+                    </thead>
+                    <tbody id="raportTableBody">
+                        {% for cont in raport_final %}
+                        <tr class="{% if cont.tip == 'A' and cont.sold_final_credit > 0 or cont.tip == 'P' and cont.sold_final_debit > 0 %}exceptional-sold{% endif %}">
+                            <td class="simbol-cell">{{ cont.simbol }}</td>
+                            <td class="tip-cell">
+                                <span class="tip-badge {% if cont.tip == 'A' %}tip-activ{% else %}tip-pasiv{% endif %}">
+                                    {{ cont.tip }}
+                                </span>
+                            </td>
+                            <td class="denumire-cell">
+                                {{ cont.denumire }}
+                                {% if cont.tip == 'A' and cont.sold_final_credit > 0 %}
+                                <span class="exceptional-indicator" title="Cont activ cu sold creditor (situație excepțională)">
+                                    <i class="fas fa-exclamation-triangle"></i> Excepțional
+                                </span>
+                                {% elif cont.tip == 'P' and cont.sold_final_debit > 0 %}
+                                <span class="exceptional-indicator" title="Cont pasiv cu sold debitor (situație excepțională)">
+                                    <i class="fas fa-exclamation-triangle"></i> Excepțional
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="number-cell debit-amount">₡{{ cont.rulaj_debit }}</td>
+                            <td class="number-cell credit-amount">₡{{ cont.rulaj_credit }}</td>
+                            <td class="number-cell sold-debit-amount">₡{{ cont.sold_final_debit }}</td>
+                            <td class="number-cell sold-credit-amount">₡{{ cont.sold_final_credit }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7">
+                                <div class="empty-state">
+                                    <i class="fas fa-chart-bar"></i>
+                                    <p>Nu există date pentru raport</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tabel Jurnal General -->
+        <div class="table-container">
+            <div class="table-header">
+                <h2 class="table-title">Registru Jurnal - Toate Operațiunile</h2>
+                <div class="table-actions">
+                    <button class="table-action-btn" id="filterJurnal">
+                        <i class="fas fa-filter"></i>
+                        Filtrează
+                    </button>
+                    <button class="table-action-btn" id="searchJurnal">
+                        <i class="fas fa-search"></i>
+                        Caută
+                    </button>
+                </div>
+            </div>
+            <div class="jurnal-table-container">
+                <table class="data-table jurnal-table">
+                    <thead>
+                        <tr>
+                            <th class="number-cell">Nr. Doc</th>
+                            <th class="document-cell">Tip Doc</th>
+                            <th class="date-cell">Data</th>
+                            <th class="simbol-cell">Cont Debit</th>
+                            <th class="simbol-cell">Cont Credit</th>
+                            <th class="number-cell">Suma</th>
+                            <th class="explicatii-cell">Explicații</th>
+                        </tr>
+                    </thead>
+                    <tbody id="jurnalTableBody">
+                        {% for operatie in operatiuni_jurnal %}
+                        <tr>
+                            <td class="number-cell">{{ operatie.nrdoc }}</td>
+                            <td class="document-cell">{{ operatie.feldoc }}</td>
+                            <td class="date-cell">{{ operatie.datadoc|date:"d.m.Y" }}</td>
+                            <td class="simbol-cell">{{ operatie.debit_cont }}</td>
+                            <td class="simbol-cell">{{ operatie.credit_cont }}</td>
+                            <td class="number-cell sold-debit-amount">₡{{ operatie.suma }}</td>
+                            <td class="explicatii-cell">{{ operatie.explicatii }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7">
+                                <div class="empty-state">
+                                    <i class="fas fa-file-alt"></i>
+                                    <p>Nu există înregistrări în jurnal</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const refreshBtn = document.getElementById('refreshDashboard');
+            const exportBtn = document.getElementById('exportButton');
+            const expandConturiBtn = document.getElementById('expandAllConturi');
+            const collapseConturiBtn = document.getElementById('collapseAllConturi');
+            const filterJurnalBtn = document.getElementById('filterJurnal');
+            const searchJurnalBtn = document.getElementById('searchJurnal');
+
+            // Reîmprospătează dashboard-ul
+            refreshBtn.addEventListener('click', function() {
+                location.reload();
+            });
+
+            // Export rapoarte
+            exportBtn.addEventListener('click', function() {
+                showNotification('Funcționalitatea de export va fi disponibilă în curând!', 'info');
+            });
+
+            // Funcții pentru raport conturi
+            expandConturiBtn.addEventListener('click', function() {
+                showNotification('Toate rândurile au fost extinse', 'success');
+            });
+
+            collapseConturiBtn.addEventListener('click', function() {
+                showNotification('Toate rândurile au fost restranse', 'success');
+            });
+
+            // Funcții pentru jurnal
+            filterJurnalBtn.addEventListener('click', function() {
+                showNotification('Funcționalitatea de filtrare va fi disponibilă în curând!', 'info');
+            });
+
+            searchJurnalBtn.addEventListener('click', function() {
+                showNotification('Funcționalitatea de căutare va fi disponibilă în curând!', 'info');
+            });
+
+            // Funcție pentru afișarea notificărilor
+            function showNotification(message, type = 'info') {
+                // Creează elementul de notificare
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3'};
+                    color: white;
+                    padding: 1rem 2rem;
+                    border-radius: 12px;
+                    z-index: 10000;
+                    animation: slideInRight 0.3s ease-out;
+                    box-shadow: var(--shadow);
+                    max-width: 400px;
+                    font-weight: 600;
+                    backdrop-filter: blur(20px);
+                    border: 1px solid rgba(255,255,255,0.1);
+                `;
+                notification.textContent = message;
+                document.body.appendChild(notification);
+                
+                // Șterge notificarea după 4 secunde
+                setTimeout(() => {
+                    notification.style.animation = 'slideOutRight 0.3s ease-out forwards';
+                    setTimeout(() => notification.remove(), 300);
+                }, 4000);
+            }
+
+            // Adaugă animațiile pentru notificări
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideInRight { 
+                    from { transform: translateX(100%); opacity: 0; } 
+                    to { transform: translateX(0); opacity: 1; } 
+                }
+                @keyframes slideOutRight { 
+                    from { transform: translateX(0); opacity: 1; } 
+                    to { transform: translateX(100%); opacity: 0; } 
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Adaugă funcționalitate de sortare pentru tabele
+            const tableHeaders = document.querySelectorAll('.data-table th');
+            tableHeaders.forEach(header => {
+                header.style.cursor = 'pointer';
+                header.addEventListener('click', function() {
+                    const table = this.closest('table');
+                    const columnIndex = Array.from(this.parentNode.children).indexOf(this);
+                    const rows = Array.from(table.querySelectorAll('tbody tr'));
+                    
+                    // Determină tipul de sortare (crescător/descrescător)
+                    const isNumeric = this.classList.contains('number-cell');
+                    const currentOrder = this.getAttribute('data-sort') || 'asc';
+                    const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+                    
+                    // Resetează toate headerele
+                    table.querySelectorAll('th').forEach(th => {
+                        th.removeAttribute('data-sort');
+                    });
+                    
+                    // Setează noul ordin
+                    this.setAttribute('data-sort', newOrder);
+                    
+                    // Sortează rândurile
+                    rows.sort((a, b) => {
+                        const aValue = a.children[columnIndex].textContent;
+                        const bValue = b.children[columnIndex].textContent;
+                        
+                        if (isNumeric) {
+                            const aNum = parseFloat(aValue.replace('₡', '').replace(/,/g, '')) || 0;
+                            const bNum = parseFloat(bValue.replace('₡', '').replace(/,/g, '')) || 0;
+                            return newOrder === 'asc' ? aNum - bNum : bNum - aNum;
+                        } else {
+                            return newOrder === 'asc' 
+                                ? aValue.localeCompare(bValue) 
+                                : bValue.localeCompare(aValue);
+                        }
+                    });
+                    
+                    // Reinserează rândurile sortate
+                    const tbody = table.querySelector('tbody');
+                    rows.forEach(row => tbody.appendChild(row));
+                    
+                    showNotification(`Tabel sortat după coloana: ${this.textContent} (${newOrder === 'asc' ? 'crescător' : 'descrescător'})`, 'success');
+                });
+            });
+
+            // Adaugă evidențierea situațiilor excepționale
+            const exceptionalRows = document.querySelectorAll('.exceptional-sold');
+            exceptionalRows.forEach(row => {
+                row.addEventListener('mouseenter', function() {
+                    let message = '';
+                    if (this.querySelector('.tip-badge').textContent.trim() === 'A') {
+                        message = 'Cont activ cu sold creditor - situație excepțională';
+                    } else {
+                        message = 'Cont pasiv cu sold debitor - situație excepțională';
+                    }
+                    showNotification(message, 'warning');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

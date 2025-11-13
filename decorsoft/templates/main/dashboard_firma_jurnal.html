@@ -388,25 +388,20 @@
         }
 
         .debit-amount {
-            color: var(--green);
-            position: relative;
-        }
-
-        .debit-amount::before {
-            content: '+';
-            margin-right: 4px;
-            font-weight: 700;
+            color: var(--cream);
         }
 
         .credit-amount {
-            color: #ff6b6b;
-            position: relative;
+            color: var(--cream);
         }
 
-        .credit-amount::before {
-            content: '-';
-            margin-right: 4px;
+        .suma-cell {
             font-weight: 700;
+            text-align: right;
+            width: 140px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            color: var(--gold);
         }
 
         .date-cell {
@@ -993,6 +988,24 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Stiluri pentru alertă */
+        .alert-warning {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            color: #ffc107;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+
+        .alert-warning i {
+            font-size: 1.2rem;
+        }
     </style>
 </head>
 <body>
@@ -1042,10 +1055,6 @@
                 <div class="stat-number">₡{{ total_credit }}</div>
                 <div class="stat-label">Total Credit</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-number">₡{{ total_suma }}</div>
-                <div class="stat-label">Total Sumă</div>
-            </div>
         </div>
 
         <!-- Tabel Operațiuni -->
@@ -1076,9 +1085,9 @@
                         <th class="number-cell">Număr</th>
                         <th class="document-cell">Document</th>
                         <th class="date-cell">Data</th>
-                        <th class="amount-cell">Credit</th>
                         <th class="amount-cell">Debit</th>
-                        <th class="amount-cell">Suma</th>
+                        <th class="amount-cell">Credit</th>
+                        <th class="suma-cell">Suma</th>
                         <th class="explicatii-cell">Explicații</th>
                         <th class="actions-cell">Acțiuni</th>
                     </tr>
@@ -1092,9 +1101,9 @@
                         <td class="number-cell">{{ registru.nrdoc }}</td>
                         <td class="document-cell">{{ registru.feldoc }}</td>
                         <td class="date-cell">{{ registru.datadoc|date:"d.m.Y" }}</td>
-                        <td class="amount-cell credit-amount">{{ registru.credit }}</td>
                         <td class="amount-cell debit-amount">{{ registru.debit }}</td>
-                        <td class="amount-cell">₡{{ registru.suma }}</td>
+                        <td class="amount-cell credit-amount">{{ registru.credit }}</td>
+                        <td class="suma-cell">₡{{ registru.suma }}</td>
                         <td class="explicatii-cell">{{ registru.explicatii }}</td>
                         <td class="actions-cell">
                             <div class="action-buttons">
@@ -1135,6 +1144,16 @@
                 {% csrf_token %}
                 <input type="hidden" id="operationId" name="id" value="">
                 
+                <div class="alert-warning" id="negativeSumAlert">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Atenție! Ați introdus o sumă negativă.</span>
+                </div>
+
+                <div class="alert-warning" id="dateWarningAlert">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Atenție! Data selectată nu este din luna și anul curent.</span>
+                </div>
+                
                 <div class="form-row">
                     <div class="form-group">
                         <label for="feldoc">Tip Document *</label>
@@ -1157,7 +1176,7 @@
                     </div>
                     <div class="form-group">
                         <label for="suma">Suma *</label>
-                        <input type="number" id="suma" name="suma" step="0.01" min="0" required placeholder="0.00">
+                        <input type="number" id="suma" name="suma" step="0.01" required placeholder="0.00">
                         <div class="error-message" id="sumaError"></div>
                     </div>
                 </div>
@@ -1256,6 +1275,10 @@
             const deselectAllBtn = document.getElementById('deselectAllBtn');
             const selectAllCheckbox = document.getElementById('selectAllCheckbox');
             const selectedCountElement = document.getElementById('selectedCount');
+            const negativeSumAlert = document.getElementById('negativeSumAlert');
+            const dateWarningAlert = document.getElementById('dateWarningAlert');
+            const sumaInput = document.getElementById('suma');
+            const datadocInput = document.getElementById('datadoc');
 
             // Variabile pentru gestionarea selecțiilor
             let selectedOperations = new Set();
@@ -1321,6 +1344,32 @@
             $(document).ready(function() {
                 initSelect2();
             });
+
+            // Funcții pentru validare
+            function checkNegativeSum() {
+                const suma = parseFloat(sumaInput.value);
+                if (suma < 0) {
+                    negativeSumAlert.style.display = 'flex';
+                } else {
+                    negativeSumAlert.style.display = 'none';
+                }
+            }
+
+            function checkCurrentMonthDate() {
+                const selectedDate = new Date(datadocInput.value);
+                const currentDate = new Date();
+                
+                if (selectedDate.getMonth() !== currentDate.getMonth() || 
+                    selectedDate.getFullYear() !== currentDate.getFullYear()) {
+                    dateWarningAlert.style.display = 'flex';
+                } else {
+                    dateWarningAlert.style.display = 'none';
+                }
+            }
+
+            // Evenimente pentru validare
+            sumaInput.addEventListener('input', checkNegativeSum);
+            datadocInput.addEventListener('change', checkCurrentMonthDate);
 
             let isEditMode = false;
 
@@ -1410,6 +1459,10 @@
                 $('#debit').val('').trigger('change');
                 $('#credit').val('').trigger('change');
 
+                // Resetează alertele
+                negativeSumAlert.style.display = 'none';
+                dateWarningAlert.style.display = 'none';
+
                 modal.style.display = 'flex';
                 document.body.style.overflow = 'hidden';
 
@@ -1455,6 +1508,9 @@
                 // Resetează Select2
                 $('.select2-field').val('').trigger('change');
                 hideAllErrors();
+                // Ascunde alertele
+                negativeSumAlert.style.display = 'none';
+                dateWarningAlert.style.display = 'none';
                 isEditMode = false;
             }
 
@@ -1500,14 +1556,18 @@
                 document.getElementById('datadoc').value = localDateTime;
                 
                 // Setează valorile pentru Select2
-                const currentDebit = row.cells[5].textContent.trim();
-                const currentCredit = row.cells[4].textContent.trim();
+                const currentDebit = row.cells[4].textContent.trim();
+                const currentCredit = row.cells[5].textContent.trim();
                 
                 $('#debit').val(currentDebit).trigger('change');
                 $('#credit').val(currentCredit).trigger('change');
                 
                 document.getElementById('suma').value = row.cells[6].textContent.replace('₡', '').trim();
                 document.getElementById('explicatii').value = row.cells[7].textContent;
+
+                // Verifică alertele
+                checkNegativeSum();
+                checkCurrentMonthDate();
 
                 modal.style.display = 'flex';
                 document.body.style.overflow = 'hidden';
@@ -1685,9 +1745,9 @@
                     <td class="number-cell">${registruData.nrdoc}</td>
                     <td class="document-cell">${registruData.feldoc}</td>
                     <td class="date-cell">${formatDate(registruData.datadoc)}</td>
-                    <td class="amount-cell credit-amount">${registruData.credit}</td>
                     <td class="amount-cell debit-amount">${registruData.debit}</td>
-                    <td class="amount-cell">₡${registruData.suma}</td>
+                    <td class="amount-cell credit-amount">${registruData.credit}</td>
+                    <td class="suma-cell">₡${registruData.suma}</td>
                     <td class="explicatii-cell">${registruData.explicatii || ''}</td>
                     <td class="actions-cell">
                         <div class="action-buttons">
@@ -1715,9 +1775,9 @@
                         <td class="number-cell">${registruData.nrdoc}</td>
                         <td class="document-cell">${registruData.feldoc}</td>
                         <td class="date-cell">${formatDate(registruData.datadoc)}</td>
-                        <td class="amount-cell credit-amount">${registruData.credit}</td>
                         <td class="amount-cell debit-amount">${registruData.debit}</td>
-                        <td class="amount-cell">₡${registruData.suma}</td>
+                        <td class="amount-cell credit-amount">${registruData.credit}</td>
+                        <td class="suma-cell">₡${registruData.suma}</td>
                         <td class="explicatii-cell">${registruData.explicatii || ''}</td>
                         <td class="actions-cell">
                             <div class="action-buttons">

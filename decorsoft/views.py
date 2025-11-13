@@ -14,6 +14,8 @@ from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
+from django.db.models import Q
+
 
 
 
@@ -236,9 +238,7 @@ def export_registru(request):
     else:
         return HttpResponse("Format invalid", status=400)
 
-
-
-
+# Incarcare partial registru jurnal (AJAX)
 @login_required(login_url='login')
 def registru_jurnal_partial(request):
     firma = request.user
@@ -251,6 +251,107 @@ def registru_jurnal_partial(request):
         'registre': registre
     })
     
+
+@login_required(login_url='/login/')
+def dashboard_firma_rapoarte(request):
+    """
+    Generează raportul complet pentru firma logată cu toate operațiunile din jurnal
+    """
+    firma = request.user
+
+    # Toate înregistrările din jurnalul firmei, ordonate cronologic
+    registre = RegistruJurnal.objects.filter(firma=firma).order_by('datadoc', 'nrdoc')
+
+    # Toate conturile existente
+    conturi = PlanConturi.objects.all().order_by('simbol')
+
+    # Lista pentru operațiunile din jurnal
+    operatiuni_jurnal = []
+
+    for registru in registre:
+        operatiuni_jurnal.append({
+            'id': registru.id,
+            'feldoc': registru.feldoc,
+            'nrdoc': registru.nrdoc,
+            'datadoc': registru.datadoc,
+            'debit_cont': registru.debit,
+            'credit_cont': registru.credit,
+            'suma': registru.suma,
+            'explicatii': registru.explicatii or '-',
+            'firma': registru.firma
+        })
+
+    # Calculăm raportul final pentru fiecare cont
+    raport_final = []
+
+    for cont in conturi:
+        # Filtram operațiunile care implică acest cont
+        operatiuni_cont = registre.filter(Q(debit=cont.simbol) | Q(credit=cont.simbol))
+
+        if not operatiuni_cont.exists():
+            continue
+
+        rulaj_debit = 0
+        rulaj_credit = 0
+
+        # CORECT: Rulajele reprezintă totalul sumelor în debit/credit
+        for op in operatiuni_cont:
+            if op.debit == cont.simbol:
+                rulaj_debit += op.suma
+            if op.credit == cont.simbol:
+                rulaj_credit += op.suma
+
+        # Calculăm soldul final în funcție de tipul contului
+        if cont.tip == 'A':  # CONT ACTIV
+            sold_final = rulaj_debit - rulaj_credit
+            if sold_final >= 0:
+                sfd = sold_final
+                sfc = 0
+            else:
+                # Cont activ cu sold creditor (situație excepțională)
+                sfd = 0
+                sfc = abs(sold_final)
+        else:  # CONT PASIV
+            sold_final = rulaj_credit - rulaj_debit
+            if sold_final >= 0:
+                sfc = sold_final
+                sfd = 0
+            else:
+                # Cont pasiv cu sold debitor (situație excepțională)
+                sfc = 0
+                sfd = abs(sold_final)
+
+        raport_final.append({
+            'simbol': cont.simbol,
+            'denumire': cont.denumire,
+            'tip': cont.tip,
+            'rulaj_debit': rulaj_debit,
+            'rulaj_credit': rulaj_credit,
+            'sold_final_debit': sfd,
+            'sold_final_credit': sfc,
+        })
+
+    # Total general (ar trebui să fie egal pentru debit și credit)
+    total_general = sum(registru.suma for registru in registre)
+
+    return render(request, 'main/dashboard_firma_rapoarte.html', {
+        'firma': firma,
+        'raport_final': raport_final,
+        'operatiuni_jurnal': operatiuni_jurnal,
+        'total_general_debit': total_general,
+        'total_general_credit': total_general,
+        'total_operatiuni': len(operatiuni_jurnal)
+    })
+
+
+
+
+
+
+
+
+
+
 
 
 
