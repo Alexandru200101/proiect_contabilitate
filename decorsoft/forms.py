@@ -205,11 +205,13 @@ class RegistruJurnalForm(forms.ModelForm):
         choices = [(c.simbol, f"{c.simbol} - {c.denumire}") for c in conturi]
         self.fields['debit'].choices = choices
         self.fields['credit'].choices = choices
+        self.fields['nrdoc'].widget.attrs['placeholder'] = "Introduceți nr. document"
+
 
     class Meta:
         model = RegistruJurnal
         # Nu includem datadoc pentru că e auto_now_add
-        fields = ['feldoc','explicatii', 'debit', 'credit', 'suma']
+        fields = ['nrdoc','feldoc','explicatii', 'debit', 'credit', 'suma']
 
 
 

@@ -1,7 +1,5 @@
-from django.db import models
 
 # Create your models here.
-from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, Group,Permission
 from django.db import models
 import uuid
@@ -97,8 +95,8 @@ class RegistruJurnal(models.Model):
         on_delete=models.CASCADE,
         related_name='registre_jurnale'
     )
-    feldoc = models.CharField(max_length=4)
-    nrdoc = models.PositiveIntegerField(editable=False)  # 🔹 acum e generat automat, fără null
+    feldoc = models.CharField(max_length=20)
+    nrdoc = models.CharField(max_length=50, null=True, blank=True)
     datadoc = models.DateTimeField(auto_now_add=True)
     explicatii = models.CharField(max_length=100, blank=True, null=True)
     debit = models.CharField(max_length=15)
@@ -107,30 +105,19 @@ class RegistruJurnal(models.Model):
 
     def save(self, *args, **kwargs):
         # dacă e un document nou, setează automat numărul următor
-        if not self.pk:
-            last_doc = RegistruJurnal.objects.filter(firma=self.firma).order_by('-nrdoc').first()
-            if last_doc:
-                self.nrdoc = last_doc.nrdoc + 1
-            else:
-                self.nrdoc = 1
+        # if not self.pk:
+        #     last_doc = RegistruJurnal.objects.filter(firma=self.firma).order_by('-nrdoc').first()
+        #     if last_doc:
+        #         self.nrdoc = last_doc.nrdoc + 1
+        #     else:
+        #         self.nrdoc = 1
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.firma.denumire_firma} - {self.feldoc or 'DOC'} {self.nrdoc}"
     
 
-# Se va sterge
-class Rapoarte(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    registru_jurnal = models.BooleanField(default=False)
-    balanta = models.BooleanField(default=False)
-    bilant = models.BooleanField(default=False)
-    analiza = models.BooleanField(default=False)
 
-    firma = models.ForeignKey('Firma', on_delete=models.CASCADE, blank=True, null=True)
-
-    def __str__(self):
-        return f"Rapoarte {self.firma.denumire}"
 
 
 

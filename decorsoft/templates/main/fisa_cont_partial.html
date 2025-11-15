@@ -1,0 +1,405 @@
+<div class="cont-header">
+    <div class="cont-info">
+        <h2>{{ cont.denumire }}</h2>
+        <div class="cont-simbol-large">{{ cont.simbol }}</div>
+        <div class="cont-tip tip-{{ cont.tip }}">
+            {{ cont.get_tip_display }}
+        </div>
+    </div>
+</div>
+
+<!-- Statistici cont -->
+<div class="cont-stats">
+    <div class="cont-stat">
+        <div class="cont-stat-value">₡{{ rulaj_debit|floatformat:2 }}</div>
+        <div class="cont-stat-label">Rulaj Debit</div>
+    </div>
+    <div class="cont-stat">
+        <div class="cont-stat-value">₡{{ rulaj_credit|floatformat:2 }}</div>
+        <div class="cont-stat-label">Rulaj Credit</div>
+    </div>
+    <div class="cont-stat">
+        <div class="cont-stat-value">₡{{ sold_final_debit|floatformat:2 }}</div>
+        <div class="cont-stat-label">Sold Final Debit</div>
+    </div>
+    <div class="cont-stat">
+        <div class="cont-stat-value">₡{{ sold_final_credit|floatformat:2 }}</div>
+        <div class="cont-stat-label">Sold Final Credit</div>
+    </div>
+</div>
+
+<!-- Tabel operațiuni -->
+<div class="operatii-table-container">
+    <div class="table-header">
+        <div class="table-title">Operațiuni Cont {{ cont.simbol }}</div>
+        <div class="table-subtitle">Lista completă a operațiunilor cu sold progresiv</div>
+    </div>
+    
+    {% if registre %}
+    <div class="table-wrapper">
+        <table class="operatii-table">
+            <thead>
+                <tr>
+                    <th class="text-center">Data</th>
+                    <th class="text-center">Document</th>
+                    <th class="text-center">Nr. Doc</th>
+                    <th>Explicații</th>
+                    <th class="text-right">Debit</th>
+                    <th class="text-right">Credit</th>
+                    <th class="text-right">Suma</th>
+                    <th class="text-right sold-column">Sold Debit</th>
+                    <th class="text-right sold-column">Sold Credit</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Linie sold inițial -->
+                <tr class="sold-initial-row">
+                    <td class="text-center date-cell">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center number-cell">INIȚIAL</td>
+                    <td class="explicatii-cell">Sold inițial cont</td>
+                    <td class="text-right amount-cell debit-amount">
+                        {% if sold_initial_debit %}
+                            ₡{{ sold_initial_debit|floatformat:2 }}
+                        {% else %}
+                            <span class="no-value">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-right amount-cell credit-amount">
+                        {% if sold_initial_credit %}
+                            ₡{{ sold_initial_credit|floatformat:2 }}
+                        {% else %}
+                            <span class="no-value">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-right amount-cell">
+                        <span class="no-value">-</span>
+                    </td>
+                    <td class="text-right sold-cell sold-debit">
+                        {% if sold_initial_debit %}
+                            ₡{{ sold_initial_debit|floatformat:2 }}
+                        {% else %}
+                            <span class="no-value">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-right sold-cell sold-credit">
+                        {% if sold_initial_credit %}
+                            ₡{{ sold_initial_credit|floatformat:2 }}
+                        {% else %}
+                            <span class="no-value">-</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                
+                <!-- Operațiuni -->
+                {% for op_data in operatiuni_cu_sold %}
+                {% with op=op_data.operatie %}
+                <tr class="operatie-row">
+                    <td class="text-center date-cell">{{ op.datadoc|date:"d.m.Y" }}</td>
+                    <td class="text-center document-cell">{{ op.feldoc }}</td>
+                    <td class="text-center number-cell">{{ op.nrdoc }}</td>
+                    <td class="explicatii-cell">{{ op.explicatii }}</td>
+                    <td class="text-right amount-cell debit-amount">
+                        {% if op.debit == cont.simbol %}
+                            ₡{{ op.suma|floatformat:2 }}
+                        {% else %}
+                            <span class="no-value">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-right amount-cell credit-amount">
+                        {% if op.credit == cont.simbol %}
+                            ₡{{ op.suma|floatformat:2 }}
+                        {% else %}
+                            <span class="no-value">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-right amount-cell suma-cell">₡{{ op.suma|floatformat:2 }}</td>
+                    <td class="text-right sold-cell sold-debit">
+                        {% if op_data.sold_debit %}
+                            ₡{{ op_data.sold_debit|floatformat:2 }}
+                        {% else %}
+                            <span class="no-value">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-right sold-cell sold-credit">
+                        {% if op_data.sold_credit %}
+                            ₡{{ op_data.sold_credit|floatformat:2 }}
+                        {% else %}
+                            <span class="no-value">-</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endwith %}
+                {% endfor %}
+                
+                <!-- Linie sold final -->
+                <tr class="sold-final-row">
+                    <td class="text-center date-cell">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center number-cell">FINAL</td>
+                    <td class="explicatii-cell">Sold final cont</td>
+                    <td class="text-right amount-cell debit-amount">
+                        {% if sold_final_debit %}
+                            ₡{{ sold_final_debit|floatformat:2 }}
+                        {% else %}
+                            <span class="no-value">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-right amount-cell credit-amount">
+                        {% if sold_final_credit %}
+                            ₡{{ sold_final_credit|floatformat:2 }}
+                        {% else %}
+                            <span class="no-value">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-right amount-cell">
+                        <span class="no-value">-</span>
+                    </td>
+                    <td class="text-right sold-cell sold-debit final-sold">
+                        {% if sold_final_debit %}
+                            ₡{{ sold_final_debit|floatformat:2 }}
+                        {% else %}
+                            <span class="no-value">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-right sold-cell sold-credit final-sold">
+                        {% if sold_final_credit %}
+                            ₡{{ sold_final_credit|floatformat:2 }}
+                        {% else %}
+                            <span class="no-value">-</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-file-alt"></i>
+        <p>Nu există operațiuni pentru acest cont</p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .table-wrapper {
+        overflow-x: auto;
+    }
+
+    .table-subtitle {
+        font-size: 0.9rem;
+        opacity: 0.7;
+        margin-top: 0.5rem;
+    }
+
+    .operatii-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 0.9rem;
+    }
+
+    .operatii-table th {
+        background: linear-gradient(135deg, rgba(255, 46, 46, 0.15) 0%, rgba(255, 107, 107, 0.1) 100%);
+        padding: 1rem 0.8rem;
+        text-align: center;
+        font-weight: 600;
+        color: var(--accent-red-light);
+        border-bottom: 2px solid var(--accent-red);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        position: sticky;
+        top: 0;
+        backdrop-filter: blur(10px);
+    }
+
+    .operatii-table th.text-right {
+        text-align: right;
+    }
+
+    .operatii-table th.text-center {
+        text-align: center;
+    }
+
+    .operatii-table th.sold-column {
+        background: linear-gradient(135deg, rgba(255, 193, 7, 0.15) 0%, rgba(255, 220, 100, 0.1) 100%);
+        border-bottom: 2px solid #ffc107;
+    }
+
+    .operatii-table td {
+        padding: 0.9rem 0.8rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        transition: var(--transition);
+        vertical-align: middle;
+    }
+
+    .operatii-table tbody tr {
+        transition: var(--transition);
+    }
+
+    .operatii-table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.04);
+        transform: translateX(2px);
+    }
+
+    .operatii-table tbody tr.operatie-row:nth-child(even) {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .operatii-table tbody tr.operatie-row:nth-child(even):hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .sold-initial-row {
+        background: rgba(33, 150, 243, 0.08) !important;
+        border-left: 3px solid #2196F3;
+        font-weight: 600;
+    }
+
+    .sold-final-row {
+        background: rgba(76, 175, 80, 0.08) !important;
+        border-left: 3px solid #4CAF50;
+        font-weight: 700;
+    }
+
+    .sold-final-row td {
+        border-bottom: none;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .date-cell {
+        font-weight: 600;
+        color: var(--cream-light);
+        white-space: nowrap;
+    }
+
+    .document-cell {
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--cream);
+    }
+
+    .number-cell {
+        font-family: 'Courier New', monospace;
+        font-weight: 700;
+        color: var(--gold);
+        background: rgba(255, 215, 0, 0.05);
+        border-radius: 4px;
+        padding: 4px 6px;
+    }
+
+    .explicatii-cell {
+        max-width: 250px;
+        min-width: 150px;
+        line-height: 1.3;
+    }
+
+    .amount-cell {
+        font-family: 'Courier New', monospace;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .debit-amount {
+        color: #4CAF50;
+        background: rgba(76, 175, 80, 0.08);
+        border-radius: 4px;
+        padding: 4px 8px;
+    }
+
+    .credit-amount {
+        color: #2196F3;
+        background: rgba(33, 150, 243, 0.08);
+        border-radius: 4px;
+        padding: 4px 8px;
+    }
+
+    .suma-cell {
+        color: var(--gold);
+        background: rgba(255, 215, 0, 0.08);
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-weight: 700;
+    }
+
+    .sold-cell {
+        font-family: 'Courier New', monospace;
+        font-weight: 600;
+        white-space: nowrap;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 4px;
+        padding: 4px 8px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .sold-debit {
+        color: #4CAF50;
+        border-left: 2px solid #4CAF50;
+    }
+
+    .sold-credit {
+        color: #2196F3;
+        border-left: 2px solid #2196F3;
+    }
+
+    .final-sold {
+        font-weight: 800;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .no-value {
+        color: rgba(255, 255, 255, 0.3);
+        font-style: italic;
+    }
+
+    /* Responsive improvements */
+    @media (max-width: 1200px) {
+        .table-wrapper {
+            font-size: 0.85rem;
+        }
+        
+        .operatii-table th,
+        .operatii-table td {
+            padding: 0.7rem 0.6rem;
+        }
+        
+        .explicatii-cell {
+            max-width: 200px;
+            min-width: 120px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .table-wrapper {
+            font-size: 0.8rem;
+        }
+        
+        .operatii-table th,
+        .operatii-table td {
+            padding: 0.6rem 0.4rem;
+        }
+        
+        .explicatii-cell {
+            max-width: 150px;
+            min-width: 100px;
+        }
+        
+        .number-cell,
+        .debit-amount,
+        .credit-amount,
+        .suma-cell,
+        .sold-cell {
+            padding: 2px 4px;
+        }
+    }
+</style>

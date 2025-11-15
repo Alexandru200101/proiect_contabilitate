@@ -166,6 +166,49 @@
             align-items: center;
         }
 
+        /* Buton nou pentru completare conturi */
+        .complete-button {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            padding: 16px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .complete-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .complete-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .complete-button:hover::before {
+            left: 100%;
+        }
+
+        .complete-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .add-button {
             background: var(--gradient);
             color: white;
@@ -236,6 +279,81 @@
 
         .export-button:hover::before {
             left: 100%;
+        }
+
+        /* Container pentru rezultate */
+        .results-container {
+            background: var(--secondary-dark);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--glass-border);
+            display: none;
+        }
+
+        .result-success {
+            border-left: 4px solid #4CAF50;
+        }
+
+        .result-error {
+            border-left: 4px solid var(--accent-red);
+        }
+
+        .result-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, var(--cream), var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .result-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .result-stat {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .result-stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gold);
+            margin-bottom: 0.5rem;
+        }
+
+        .result-stat-label {
+            color: var(--cream);
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+
+        .operations-list {
+            margin-top: 1.5rem;
+        }
+
+        .operation-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            border-left: 3px solid var(--accent-red);
+        }
+
+        .operation-item.venit {
+            border-left-color: #4CAF50;
+        }
+
+        .operation-item.final {
+            border-left-color: var(--gold);
         }
 
         /* Tabel - Design Îmbunătățit */
@@ -926,6 +1044,24 @@
             font-size: 0.9rem;
         }
 
+        /* Stiluri pentru alertă */
+        .alert-warning {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            color: #ffc107;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+
+        .alert-warning i {
+            font-size: 1.2rem;
+        }
+
         /* Responsive */
         @media (max-width: 1200px) {
             .jurnal-container {
@@ -956,6 +1092,7 @@
             .action-buttons-container {
                 width: 100%;
                 justify-content: center;
+                flex-wrap: wrap;
             }
 
             .search-box {
@@ -988,24 +1125,6 @@
                 grid-template-columns: 1fr;
             }
         }
-
-        /* Stiluri pentru alertă */
-        .alert-warning {
-            background: rgba(255, 193, 7, 0.1);
-            border: 1px solid rgba(255, 193, 7, 0.3);
-            color: #ffc107;
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin: 10px 0;
-            display: none;
-            align-items: center;
-            gap: 10px;
-            font-weight: 500;
-        }
-
-        .alert-warning i {
-            font-size: 1.2rem;
-        }
     </style>
 </head>
 <body>
@@ -1030,6 +1149,11 @@
                 <input type="text" id="searchInput" placeholder="Caută după document, explicații...">
             </div>
             <div class="action-buttons-container">
+                <!-- BUTON NOU PENTRU COMPLETARE CONTURI -->
+                <button class="complete-button" id="completeAccountsBtn">
+                    <i class="fas fa-calculator"></i>
+                    Completează Conturi
+                </button>
                 <button class="export-button" id="exportButton">
                     <i class="fas fa-download"></i>
                     Export
@@ -1038,6 +1162,17 @@
                     <i class="fas fa-plus"></i>
                     Adaugă Operațiune
                 </button>
+            </div>
+        </div>
+
+        <!-- Container pentru rezultatele închiderii -->
+        <div class="results-container" id="resultsContainer">
+            <div class="result-title" id="resultTitle">Rezultate Închidere Conturi</div>
+            <div class="result-stats" id="resultStats">
+                <!-- Statisticile vor fi populate din JavaScript -->
+            </div>
+            <div class="operations-list" id="operationsList">
+                <!-- Lista operațiilor va fi populată din JavaScript -->
             </div>
         </div>
 
@@ -1163,7 +1298,7 @@
                     </div>
                     <div class="form-group">
                         <label for="nrdoc">Număr Document</label>
-                        <input type="text" id="nrdoc" name="nrdoc" class="readonly-field" readonly>
+                        <input type="text" id="nrdoc" name="nrdoc">
                         <div class="form-help">Generat automat</div>
                     </div>
                 </div>
@@ -1261,6 +1396,7 @@
             const nrdocInput = document.getElementById('nrdoc');
             const addBtn = document.getElementById('addOperationBtn');
             const exportBtn = document.getElementById('exportButton');
+            const completeAccountsBtn = document.getElementById('completeAccountsBtn');
             const closeBtn = document.getElementById('closeModal');
             const closeExportBtn = document.getElementById('closeExportModal');
             const form = document.getElementById('operationForm');
@@ -1279,11 +1415,15 @@
             const dateWarningAlert = document.getElementById('dateWarningAlert');
             const sumaInput = document.getElementById('suma');
             const datadocInput = document.getElementById('datadoc');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultStats = document.getElementById('resultStats');
+            const operationsList = document.getElementById('operationsList');
 
             // Variabile pentru gestionarea selecțiilor
             let selectedOperations = new Set();
 
-            // Inițializare Select2 - CORECTATĂ
+            // Inițializare Select2
             function initSelect2() {
                 $('.select2-field').select2({
                     width: '100%',
@@ -1298,13 +1438,11 @@
                             return "Căutare...";
                         }
                     },
-                    // Template pentru afișarea fiecărui rezultat
                     templateResult: function(data) {
                         if (!data.id) {
                             return data.text;
                         }
                         
-                        // Împarte textul în simbol și descriere
                         const parts = data.text.split(' - ');
                         if (parts.length === 2) {
                             const simbol = parts[0];
@@ -1321,18 +1459,15 @@
                         
                         return data.text;
                     },
-                    // Template pentru afișarea selecției
                     templateSelection: function(data) {
                         if (!data.id) {
                             return data.text;
                         }
                         
-                        // Afișează doar simbolul când este selectat
                         const parts = data.text.split(' - ');
                         return parts[0] || data.text;
                     }
                 }).on('select2:open', function() {
-                    // Corecție pentru a asigura că dropdown-ul rămâne în modal
                     setTimeout(() => {
                         const searchField = $('.select2-search__field');
                         searchField.attr('placeholder', 'Caută simbol (ex: 5121) sau descriere...');
@@ -1440,13 +1575,114 @@
                 }
             });
 
+            // Funcția pentru completarea conturilor (profit/pierdere)
+            completeAccountsBtn.addEventListener('click', async function() {
+                const button = this;
+                const originalText = button.innerHTML;
+                
+                try {
+                    // Afișează loading state
+                    button.disabled = true;
+                    button.innerHTML = '<span class="spinner"></span> Se procesează...';
+                    
+                    const response = await fetch('{% url "cont_profit_pierdere" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Afișează rezultatele
+                        displayResults(data);
+                        showNotification(data.message, 'success');
+                    } else {
+                        showNotification(data.message, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showNotification('Eroare la comunicarea cu serverul', 'error');
+                } finally {
+                    // Restaurează butonul
+                    button.disabled = false;
+                    button.innerHTML = originalText;
+                }
+            });
+
+            // Funcție pentru afișarea rezultatelor
+            function displayResults(data) {
+                const resultData = data.data;
+                
+                // Setează titlul și clasa pentru succes
+                resultTitle.textContent = 'Închidere Conturi - Finalizată cu Success';
+                resultsContainer.className = 'results-container result-success';
+                
+                // Afișează statisticile
+                resultStats.innerHTML = `
+                    <div class="result-stat">
+                        <div class="result-stat-value">₡${resultData.total_cheltuieli.toFixed(2)}</div>
+                        <div class="result-stat-label">Total Cheltuieli</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-value">₡${resultData.total_venituri.toFixed(2)}</div>
+                        <div class="result-stat-label">Total Venituri</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-value">₡${resultData.rezultat.toFixed(2)}</div>
+                        <div class="result-stat-label">${resultData.tip_rezultat}</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-value">${resultData.numar_operatii}</div>
+                        <div class="result-stat-label">Operații Create</div>
+                    </div>
+                `;
+                
+                // Afișează lista operațiilor
+                let operationsHTML = '<h4>Operații de închidere create:</h4>';
+                
+                // Operații de închidere (cheltuieli și venituri)
+                resultData.operatii_inchidere.forEach(op => {
+                    const typeClass = op.tip === 'venituri' ? 'venit' : '';
+                    operationsHTML += `
+                        <div class="operation-item ${typeClass}">
+                            <strong>${op.cont} - ${op.denumire}</strong><br>
+                            Tip: ${op.tip === 'cheltuieli' ? 'Cheltuieli' : 'Venituri'} | 
+                            Suma: ₡${op.suma.toFixed(2)}
+                        </div>
+                    `;
+                });
+                
+                // Operații finale (profit/pierdere)
+                resultData.operatii_finale.forEach(op => {
+                    operationsHTML += `
+                        <div class="operation-item final">
+                            <strong>Operație finală (${op.tip})</strong><br>
+                            Debit: ${op.debit} | Credit: ${op.credit} | 
+                            Suma: ₡${op.suma.toFixed(2)}
+                        </div>
+                    `;
+                });
+                
+                operationsList.innerHTML = operationsHTML;
+                
+                // Afișează containerul de rezultate
+                resultsContainer.style.display = 'block';
+                
+                // Scroll la rezultate
+                resultsContainer.scrollIntoView({ behavior: 'smooth' });
+            }
+
             // Deschide modal pentru adăugare
             addBtn.addEventListener('click', () => {
                 isEditMode = false;
                 modalTitle.textContent = 'Adaugă Operațiune';
                 submitText.textContent = 'Salvează Operațiune';
                 operationId.value = '';
-                nrdocInput.value = 'Se va genera automat';
+                nrdocInput.value = '';
 
                 // Setează data și ora curentă
                 const now = new Date();

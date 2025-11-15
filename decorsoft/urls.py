@@ -19,11 +19,16 @@ urlpatterns = [
     path('adauga-registru-ajax/', views.adauga_registru_ajax, name='adauga_registru_ajax'),
     path('modifica-registru-ajax/', views.modifica_registru_ajax, name='modifica_registru_ajax'),
     path('sterge-registru-ajax/', views.sterge_registru_ajax, name='sterge_registru_ajax'),
-    path('export-registru/', views.export_registru, name='export_registru'),
+    path('export-registru/', views.export_registru, name='export_registru'),    
+    path('cont-profit-pierdere/', views.cont_profit_pierdere, name='cont_profit_pierdere'),
 
-    # Gestionare rapoarte firmă
-    path('dashboard-firma-rapoarte/', views.dashboard_firma_rapoarte, name='dashboard_firma_rapoarte'),
-    # path('rapoarte/fisa-cont/<str:cont_id>/', views.fisa_cont, name='fisa_cont'),
+    # Gestionare balanta firmă
+    path('dashboard-firma-balanta/', views.dashboard_firma_balanta, name='dashboard_firma_balanta'),
+
+    
+    # Gestionare fisa cont
+    path('fisa-cont/', views.dashboard_firma_fisa_cont, name='dashboard_firma_fisa_cont'),
+    path('fisa-cont/<str:cont_simbol>/', views.fisa_cont_ajax, name='get_fisa_cont_ajax'),
 
 
     # 🏢 Administrare firme (doar pentru admin)

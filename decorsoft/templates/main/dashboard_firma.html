@@ -446,12 +446,10 @@
             <div class="nav-section">
                 <div class="nav-title">PRINCIPAL</div>
                 <div class="nav-item active">
-                    <i class="fas fa-home"></i>
-                    <span>Dashboard</span>
-                </div>
-                <div class="nav-item">
-                    <i class="fas fa-book"></i>
-                    <span>Registru</span>
+                    <a href="{% url 'dashboard_firma' %}" class="nav-link">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
                 </div>
                 <div class="nav-item">
                     <a href="{% url 'dashboard_firma_jurnal' %}" class="nav-link">
@@ -460,58 +458,33 @@
                     </a>
                 </div>
                 <div class="nav-item">
-                    <i class="fas fa-chart-bar"></i>
-                    <a href="{% url 'dashboard_firma_rapoarte' %}" class="nav-link">
-                        <span>Rapoarte</span>
+                    <a href="{% url 'dashboard_firma_balanta' %}" class="nav-link">
+                        <i class="fas fa-balance-scale"></i>
+                        <span>Balanța</span>
+                    </a>
+                </div>
+                <!-- BUTON NOU PENTRU FIȘA CONT -->
+                <div class="nav-item">
+                    <a href="{% url 'dashboard_firma_fisa_cont' %}" class="nav-link">
+                        <i class="fas fa-file-invoice"></i>
+                        <span>Fișa Cont</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-title">RAPOARTE</div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Statistici</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Statistici</span>
-                </div>
-            </div>
-
-            <div class="nav-section">
-                <div class="nav-title">CONTABILITATE</div>
-                <div class="nav-item">
-                    <i class="fas fa-balance-scale"></i>
-                    <span>Bilanț</span>
-                </div>
-                <div class="nav-item">
-                    <i class="fas fa-receipt"></i>
-                    <span>Chitanțe</span>
-                </div>
-            </div>
-
-            <div class="nav-section">
-                <div class="nav-title">OPERATIUNI</div>
-                <div class="nav-item">
-                    <i class="fas fa-file-invoice"></i>
-                    <span>Facturi</span>
-                </div>
-                <div class="nav-item">
-                    <i class="fas fa-calculator"></i>
-                    <span>Calcule</span>
-                </div>
-                <div class="nav-item">
-                    <i class="fas fa-database"></i>
-                    <span>Arhivă</span>
-                </div>
-            </div>
-
-            <div class="nav-section">
-                <div class="nav-title">FIRMĂ</div>
-                <div class="nav-item">
-                    <i class="fas fa-building"></i>
-                    <span>Profil Firmă</span>
-                </div>
-                <div class="nav-item">
-                    <i class="fas fa-users"></i>
-                    <span>Angajați</span>
-                </div>
-                <div class="nav-item">
-                    <i class="fas fa-cog"></i>
-                    <span>Setări</span>
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Bilanț</span>
+                    </a>
                 </div>
             </div>
         </div>

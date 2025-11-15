@@ -140,7 +140,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # ... alte setări ...
 
 # Setări autentificare
-LOGIN_URL = '/admin-login/'  # ruta ta custom pentru login
+LOGIN_URL = '/admin-login/'  # ruta custom pentru login
 LOGIN_REDIRECT_URL = '/admin-dashboard/'  # unde să meargă după login
 LOGOUT_REDIRECT_URL = '/admin-login/'  # unde să meargă după logout
 AUTH_USER_MODEL = 'decorsoft.Firma'
