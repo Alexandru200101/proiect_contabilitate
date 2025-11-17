@@ -16,9 +16,14 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from django.db.models import Q
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
+from dateutil import parser
+import logging
 
+
+logger = logging.getLogger(__name__)
+TVA_IMPLICIT = Decimal('0.21')
 
 
 
@@ -107,13 +112,50 @@ def adauga_registru_ajax(request):
     if form.is_valid():
         registru = form.save(commit=False)
         registru.firma = request.user
-
-        # Generăm nrdoc automat
-        # last_doc = RegistruJurnal.objects.filter(firma=request.user).order_by('-nrdoc').first()
-        # registru.nrdoc = (last_doc.nrdoc + 1) if last_doc else 1
-
         registru.save()
 
+        tva_operatie = None
+        TVA = Decimal("0.21")
+
+        # ---------------------------------
+        # TVA colectată (client) – Debit 411
+        # ---------------------------------
+        if registru.debit == "411":
+            valoare_tva = (registru.suma * TVA).quantize(Decimal("0.01"))
+
+            tva_operatie = RegistruJurnal.objects.create(
+                firma=request.user,
+                datadoc=registru.datadoc,
+                feldoc=f"{registru.feldoc} - TVA",
+                nrdoc=f"{registru.nrdoc}-TVA",
+                debit="411",
+                credit="4427",
+                suma=valoare_tva,
+                explicatii=f"TVA colectată 21% pentru document {registru.nrdoc}",
+                parent=registru  #  operațiune copil
+            )
+
+        # ---------------------------------
+        # TVA deductibilă (furnizor) – Credit 401
+        # ---------------------------------
+        if registru.credit == "401":
+            valoare_tva = (registru.suma * TVA).quantize(Decimal("0.01"))
+
+            tva_operatie = RegistruJurnal.objects.create(
+                firma=request.user,
+                datadoc=registru.datadoc,
+                feldoc=f"{registru.feldoc} - TVA",
+                nrdoc=f"{registru.nrdoc}-TVA",
+                debit="4426",
+                credit="401",
+                suma=valoare_tva,
+                explicatii=f"TVA deductibilă 21% pentru document {registru.nrdoc}",
+                parent=registru  #  operațiune copil
+            )
+
+        # -----------------------------
+        # Răspuns AJAX
+        # -----------------------------
         return JsonResponse({
             'success': True,
             'message': 'Înregistrarea a fost adăugată!',
@@ -124,11 +166,15 @@ def adauga_registru_ajax(request):
                 'suma': str(registru.suma),
                 'explicatii': registru.explicatii,
                 'datadoc': registru.datadoc.strftime('%Y-%m-%d %H:%M'),
+                'tva_added': tva_operatie is not None,
+                'tva_id': tva_operatie.id if tva_operatie else None
             }
         })
+
     else:
         return JsonResponse({'success': False, 'errors': form.errors}, status=400)
-    
+
+
 
 # Stergere inregistrare AJAX
 @login_required(login_url='login')
@@ -141,15 +187,19 @@ def sterge_registru_ajax(request):
 
     registru = get_object_or_404(RegistruJurnal, id=id_registru)
 
-    # Verificăm că înregistrarea aparține utilizatorului curent
+    # verificare că aparține utilizatorului
     if registru.firma != request.user:
         return HttpResponseForbidden("Nu aveți permisiunea de a șterge această înregistrare.")
 
+    # 🔥 Șterge automat toate operațiunile TVA copil
+    registru.tva_children.all().delete()
+
+    # Șterge înregistrarea principală
     registru.delete()
 
     return JsonResponse({
         'success': True,
-        'message': f"Înregistrarea {id_registru} a fost ștearsă cu succes!"
+        'message': f"Înregistrarea {id_registru} și TVA-ul aferent au fost șterse!"
     })
 
 # modificare inregistrare AJAX
@@ -184,7 +234,7 @@ def modifica_registru_ajax(request):
     else:
         return JsonResponse({'success': False, 'errors': form.errors}, status=400)
     
-#Export registru jurnal CSV si PDF
+# Export registru jurnal CSV si PDF
 @login_required(login_url='login')
 def export_registru(request):
     format_ = request.GET.get('format')
@@ -422,6 +472,114 @@ def _render_profit_loss_template(request):
     })
 
 
+@login_required
+def import_jurnal_csv(request):
+    if request.method != "POST":
+        return JsonResponse({"success": False, "message": "Metodă invalidă."})
+
+    firma = request.user
+
+    if "csv_file" not in request.FILES:
+        return JsonResponse({"success": False, "message": "Nu ai selectat niciun fișier."})
+
+    file = request.FILES["csv_file"]
+
+    try:
+        decoded_file = file.read().decode('utf-8').splitlines()
+        reader = csv.DictReader(decoded_file)
+        # Curățăm eventuale spații în header
+        reader.fieldnames = [f.strip() for f in reader.fieldnames]
+    except Exception as e:
+        logger.exception("CSV invalid sau nu poate fi citit")
+        return JsonResponse({"success": False, "message": "Fișier CSV invalid."})
+
+    adaugate = 0
+    erori = []
+
+    for row_num, row in enumerate(reader, start=2):  # start=2 pentru header
+        try:
+            # Preluare câmpuri corecte
+            debit = row.get("debit_scur", "").strip()
+            credit = row.get("credit_scu", "").strip()
+            suma_str = row.get("suma", "").strip()
+            data_str = row.get("data", "").strip()
+            tipdoc = row.get("tipdoc", "").strip()[:4]
+            nrdoc = row.get("nrdoc", "").strip()
+            explicatii = row.get("explicatii", "").strip()
+
+            # Verificare câmpuri obligatorii
+            if not debit:
+                msg = f"Rând {row_num}: Eroare cont debit - câmp gol"
+                logger.error(msg)
+                erori.append(msg)
+                continue
+            if not credit:
+                msg = f"Rând {row_num}: Eroare cont credit - câmp gol"
+                logger.error(msg)
+                erori.append(msg)
+                continue
+
+            # Verificăm dacă conturile există în planul de conturi
+            if not PlanConturi.objects.filter(simbol=debit).exists():
+                msg = f"Rând {row_num}: Cont debit invalid: '{debit}'"
+                logger.error(msg)
+                erori.append(msg)
+                continue
+            if not PlanConturi.objects.filter(simbol=credit).exists():
+                msg = f"Rând {row_num}: Cont credit invalid: '{credit}'"
+                logger.error(msg)
+                erori.append(msg)
+                continue
+
+            # Conversie dată
+            try:
+                datadoc = parser.parse(data_str, dayfirst=True).date()
+            except Exception as e:
+                msg = f"Rând {row_num}: Eroare conversie dată - valoare: '{data_str}' | {str(e)}"
+                logger.error(msg)
+                erori.append(msg)
+                continue
+
+            # Conversie sumă
+            try:
+                suma = Decimal(suma_str)
+            except Exception as e:
+                msg = f"Rând {row_num}: Eroare conversie sumă - valoare: '{suma_str}' | {str(e)}"
+                logger.error(msg)
+                erori.append(msg)
+                continue
+
+            # Creare obiect RegistruJurnal
+            RegistruJurnal.objects.create(
+                firma=firma,
+                feldoc=tipdoc,
+                nrdoc=nrdoc,
+                datadoc=datadoc,
+                debit=debit,
+                credit=credit,
+                suma=suma,
+                explicatii=explicatii
+            )
+            adaugate += 1
+
+        except Exception as e:
+            msg = f"Rând {row_num}: Eroare neașteptată - {str(e)}"
+            logger.exception(msg)
+            erori.append(msg)
+
+    logger.info(f"Import finalizat: {adaugate} rânduri adăugate, {len(erori)} erori")
+    return JsonResponse({
+        "success": True,
+        "message": f"Import finalizat: {adaugate} rânduri adăugate. Erori: {len(erori)}",
+        "errors": erori
+    })
+
+
+
+
+
+
+
 # Incarcare partial registru jurnal (AJAX)
 @login_required(login_url='login')
 def registru_jurnal_partial(request):
@@ -436,116 +594,178 @@ def registru_jurnal_partial(request):
     })
     
 # Balanta
-@login_required(login_url='/login/')
+@login_required(login_url="/login/")
 def dashboard_firma_balanta(request):
-    """
-    Generează raportul complet pentru firma logată cu toate operațiunile din jurnal
-    """
     firma = request.user
 
-    # Toate înregistrările din jurnalul firmei, ordonate cronologic
-    registre = RegistruJurnal.objects.filter(firma=firma).order_by('datadoc', 'nrdoc')
+    # 1. Obținem toate rulajele într-o singură interogare
+    rulaje = (
+        RegistruJurnal.objects
+        .filter(firma=firma)
+        .values('debit')        # grupăm pe cont debit
+        .annotate(total_debit=Sum('suma'))
+    )
 
-    # Toate conturile existente
-    conturi = PlanConturi.objects.all().order_by('simbol')
+    rulaje_credit = (
+        RegistruJurnal.objects
+        .filter(firma=firma)
+        .values('credit')       # grupăm pe cont credit
+        .annotate(total_credit=Sum('suma'))
+    )
 
-    # Lista pentru operațiunile din jurnal
-    operatiuni_jurnal = []
+    # Transformăm în dicționare pentru acces rapid
+    debit_dict = {r['debit']: r['total_debit'] for r in rulaje}
+    credit_dict = {r['credit']: r['total_credit'] for r in rulaje_credit}
 
-    for registru in registre:
-        operatiuni_jurnal.append({
-            'id': registru.id,
-            'feldoc': registru.feldoc,
-            'nrdoc': registru.nrdoc,
-            'datadoc': registru.datadoc,
-            'debit_cont': registru.debit,
-            'credit_cont': registru.credit,
-            'suma': registru.suma,
-            'explicatii': registru.explicatii or '-',
-            'firma': registru.firma
-        })
+    # 2. Luăm toate conturile
+    conturi = PlanConturi.objects.all().order_by("simbol")
 
-    # Calculăm raportul final pentru fiecare cont
     raport_final = []
 
     for cont in conturi:
-        # Filtram operațiunile care implică acest cont
-        operatiuni_cont = registre.filter(Q(debit=cont.simbol) | Q(credit=cont.simbol))
+        simbol = cont.simbol
 
+        rulaj_debit = debit_dict.get(simbol, 0)
+        rulaj_credit = credit_dict.get(simbol, 0)
+
+        if rulaj_debit == 0 and rulaj_credit == 0:
+            continue  # skip conturile fără mișcare
+
+        # Calcul sold final
+        if cont.tip == "A":      # Activ
+            sold = rulaj_debit - rulaj_credit
+            sfd = max(sold, 0)
+            sfc = max(-sold, 0)
+        else:                    # Pasiv
+            sold = rulaj_credit - rulaj_debit
+            sfc = max(sold, 0)
+            sfd = max(-sold, 0)
+
+        raport_final.append({
+            "simbol": simbol,
+            "denumire": cont.denumire,
+            "tip": cont.tip,
+            "rulaj_debit": float(rulaj_debit),
+            "rulaj_credit": float(rulaj_credit),
+            "sold_final_debit": float(sfd),
+            "sold_final_credit": float(sfc),
+        })
+
+    # Total general (tot într-o singură interogare)
+    total_general = (
+        RegistruJurnal.objects
+        .filter(firma=firma)
+        .aggregate(t=Sum("suma"))["t"] or 0
+    )
+
+    return render(request, "main/dashboard_firma_balanta.html", {
+        "firma": firma,
+        "raport_final": raport_final,
+        "total_general_debit": total_general,
+        "total_general_credit": total_general,
+    })
+
+@login_required(login_url='login')
+def export_balanta(request):
+    format_ = request.GET.get('format', 'csv')
+    firma = request.user
+
+    # Preluăm datele pentru balanță
+    registre = RegistruJurnal.objects.filter(firma=firma).order_by('datadoc', 'nrdoc')
+    conturi = PlanConturi.objects.all().order_by('simbol')
+
+    # Construim lista de date
+    date_balanta = []
+    for cont in conturi:
+        operatiuni_cont = registre.filter(Q(debit=cont.simbol) | Q(credit=cont.simbol))
         if not operatiuni_cont.exists():
             continue
 
-        rulaj_debit = 0
-        rulaj_credit = 0
+        rulaj_debit = sum(op.suma for op in operatiuni_cont if op.debit == cont.simbol)
+        rulaj_credit = sum(op.suma for op in operatiuni_cont if op.credit == cont.simbol)
 
-        # CORECT: Rulajele reprezintă totalul sumelor în debit/credit
-        for op in operatiuni_cont:
-            if op.debit == cont.simbol:
-                rulaj_debit += op.suma
-            if op.credit == cont.simbol:
-                rulaj_credit += op.suma
-
-        # Calculăm soldul final în funcție de tipul contului
-        if cont.tip == 'A':  # CONT ACTIV
+        if cont.tip == 'A':
             sold_final = rulaj_debit - rulaj_credit
-            if sold_final >= 0:
-                sfd = sold_final
-                sfc = 0
-            else:
-                # Cont activ cu sold creditor (situație excepțională)
-                sfd = 0
-                sfc = abs(sold_final)
-        else:  # CONT PASIV
+            sfd = max(sold_final, 0)
+            sfc = max(-sold_final, 0)
+        else:
             sold_final = rulaj_credit - rulaj_debit
-            if sold_final >= 0:
-                sfc = sold_final
-                sfd = 0
-            else:
-                # Cont pasiv cu sold debitor (situație excepțională)
-                sfc = 0
-                sfd = abs(sold_final)
+            sfc = max(sold_final, 0)
+            sfd = max(-sold_final, 0)
 
-        raport_final.append({
-            'simbol': cont.simbol,
-            'denumire': cont.denumire,
-            'tip': cont.tip,
-            'rulaj_debit': rulaj_debit,
-            'rulaj_credit': rulaj_credit,
-            'sold_final_debit': sfd,
-            'sold_final_credit': sfc,
-        })
+        date_balanta.append([
+            cont.simbol,
+            cont.denumire,
+            cont.tip,
+            rulaj_debit,
+            rulaj_credit,
+            sfd,
+            sfc
+        ])
 
-    # Total general (ar trebui să fie egal pentru debit și credit)
-    total_general = sum(registru.suma for registru in registre)
+    if format_ == 'csv':
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="balanta.csv"'
 
-    return render(request, 'main/dashboard_firma_balanta.html', {
-        'firma': firma,
-        'raport_final': raport_final,
-        'operatiuni_jurnal': operatiuni_jurnal,
-        'total_general_debit': total_general,
-        'total_general_credit': total_general,
-        'total_operatiuni': len(operatiuni_jurnal)
-    })
+        writer = csv.writer(response)
+        writer.writerow(['Simbol', 'Denumire', 'Tip', 'Rulaj Debit', 'Rulaj Credit', 'Sold Debit', 'Sold Credit'])
+        for row in date_balanta:
+            writer.writerow(row)
+
+        return response
+
+    elif format_ == 'pdf':
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4)
+        styles = getSampleStyleSheet()
+
+        # Tabel
+        data = [['Simbol', 'Denumire', 'Tip', 'Rulaj Debit', 'Rulaj Credit', 'Sold Debit', 'Sold Credit']]
+        data.extend(date_balanta)
+
+        table = Table(data)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.lightblue),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ]))
+
+        doc.build([Paragraph("Balanță - Export", styles['Title']), table])
+        pdf = buffer.getvalue()
+        buffer.close()
+
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="balanta.pdf"'
+        response.write(pdf)
+        return response
+
+    else:
+        return HttpResponse("Format invalid", status=400)
+
 
 
 
 
 @login_required(login_url='/login/')
 def dashboard_firma_fisa_cont(request):
-    """
-    Pagina principală pentru fișa de cont - afișează doar conturile folosite
-    """
     firma = request.user
-    
-    # Obținem doar conturile care apar în RegistruJurnal pentru firma conectată
-    conturi_folosite = PlanConturi.objects.filter(
-        Q(registrujurnal_debit__firma=firma) | Q(registrujurnal_credit__firma=firma)
-    ).distinct().order_by('simbol')
-    
+
+    # Luăm toate simbolurile de cont folosite de firmă
+    simboluri = RegistruJurnal.objects.filter(firma=firma).values_list('debit', flat=True)
+    simboluri2 = RegistruJurnal.objects.filter(firma=firma).values_list('credit', flat=True)
+
+    simboluri_folosite = set(list(simboluri) + list(simboluri2))
+
+    # Luăm doar conturile existente în PlanConturi
+    conturi_folosite = PlanConturi.objects.filter(simbol__in=simboluri_folosite).order_by('simbol')
+
     return render(request, 'main/dashboard_firma_fisa_cont.html', {
         'firma': firma,
         'conturi': conturi_folosite
     })
+
 
 
 @login_required(login_url='/login/')
@@ -632,7 +852,578 @@ def fisa_cont_ajax(request, cont_simbol):
     })
 
 
+class SituatieConturi:
+    """Calcul solduri finale pe baza RegistruJurnal pentru firma logată."""
+    
+    def __init__(self, firma):
+        self.firma = firma
+        self.solduri = self._get_solduri_finale()
 
+    def _get_solduri_finale(self):
+        """Calculează soldurile pentru fiecare cont din registrul jurnal."""
+        solduri = {}
+
+        # Preluăm toate conturile distincte
+        conturi_debit = RegistruJurnal.objects.filter(
+            firma=self.firma
+        ).values_list('debit', flat=True).distinct()
+        
+        conturi_credit = RegistruJurnal.objects.filter(
+            firma=self.firma
+        ).values_list('credit', flat=True).distinct()
+
+        # Combinăm toate conturile unice
+        toate_conturile = set(conturi_debit) | set(conturi_credit)
+        toate_conturile = {cont for cont in toate_conturile if cont and str(cont).strip()}
+
+        for simbol in toate_conturile:
+            try:
+                simbol_str = str(simbol).strip()
+
+                # Total debit pentru acest cont
+                debit_total = RegistruJurnal.objects.filter(
+                    firma=self.firma,
+                    debit=simbol_str
+                ).aggregate(total=Sum('suma'))['total'] or 0
+
+                # Total credit pentru acest cont
+                credit_total = RegistruJurnal.objects.filter(
+                    firma=self.firma,
+                    credit=simbol_str
+                ).aggregate(total=Sum('suma'))['total'] or 0
+
+                # Calculăm soldul final (pozitiv = debit, negativ = credit)
+                sold_final = float(debit_total) - float(credit_total)
+
+                solduri[simbol_str] = {
+                    'debit_total': float(debit_total),
+                    'credit_total': float(credit_total),
+                    'sold_final': sold_final,
+                    'SD': float(debit_total) if sold_final >= 0 else 0,
+                    'SC': abs(float(credit_total)) if sold_final < 0 else 0
+                }
+                
+            except (ValueError, TypeError) as e:
+                print(f"Eroare la procesarea contului {simbol}: {e}")
+                continue
+
+        return solduri
+
+    def get_sold(self, simbol, tip_sold='SD'):
+        """
+        Returnează soldul pentru un cont specific sau pentru toate sub-conturile.
+        
+        Args:
+            simbol: Contul căutat (ex: '201', '47', '4711')
+            tip_sold: 'SD' (sold debitor) sau 'SC' (sold creditor)
+        """
+        tip_sold = tip_sold.upper()
+        simbol_str = str(simbol).strip()
+        
+        total = 0
+        conturi_gasite = []
+        
+        # Verificăm dacă există contul exact
+        if simbol_str in self.solduri:
+            valoare = self.solduri[simbol_str].get(tip_sold, 0)
+            total += valoare
+            if valoare != 0:
+                conturi_gasite.append(f"{simbol_str}: {valoare:.2f}")
+        
+        # Căutăm și sub-conturi
+        for cont, sold in self.solduri.items():
+            # Verificăm dacă este sub-cont (ex: '4711' este sub-cont al '471')
+            if cont != simbol_str and cont.startswith(simbol_str):
+                valoare = sold.get(tip_sold, 0)
+                total += valoare
+                if valoare != 0:
+                    conturi_gasite.append(f"{cont}: {valoare:.2f}")
+        
+        # Logging detaliat
+        if conturi_gasite:
+            logger.info(f"Cont {simbol_str} ({tip_sold}): TOTAL = {total:.2f}")
+            for cont_info in conturi_gasite:
+                logger.info(f"  └─ {cont_info}")
+        
+        return total
+
+    def get_toate_conturile(self):
+        """Returnează lista tuturor conturilor cu soldurile lor."""
+        return self.solduri
+
+    def afiseaza_situatie(self):
+        """Afișează situația conturilor pentru debug."""
+        print("\n=== SITUAȚIA CONTURILOR ===")
+        for cont in sorted(self.solduri.keys()):
+            sold = self.solduri[cont]
+            print(f"Cont {cont}: Debit={sold['debit_total']:.2f}, "
+                  f"Credit={sold['credit_total']:.2f}, "
+                  f"Sold Final={sold['sold_final']:.2f}")
+        print("=" * 50 + "\n")
+
+
+def calculeaza_bilant(situatie_conturi, sold_471_1an=0, sold_471_peste1an=0,
+                      sold_475_1an=0, sold_475_peste1an=0,
+                      sold_472_1an=0, sold_472_peste1an=0,
+                      sold_478_1an=0, sold_478_peste1an=0):
+    """
+    Calculează bilanțul contabil conform OMFP 1802/2014.
+    
+    Args:
+        situatie_conturi: Instanță SituatieConturi
+        sold_471_*: Solduri pentru cheltuieli în avans pe perioade
+        sold_475_*: Solduri pentru venituri în avans pe perioade
+        sold_472_*: Solduri pentru subvenții pe perioade
+        sold_478_*: Solduri pentru alte provizioane pe perioade
+    """
+    S = situatie_conturi
+
+    def SD(cont):
+        """Returnează soldul debitor pentru un cont."""
+        return S.get_sold(str(cont), 'SD')
+
+    def SC(cont):
+        """Returnează soldul creditor pentru un cont."""
+        return S.get_sold(str(cont), 'SC')
+
+    rezultate = {}
+    
+    try:
+        logger.info("=" * 80)
+        logger.info("ÎNCEPE CALCULUL BILANȚULUI")
+        logger.info("=" * 80)
+        
+        # ========== ACTIVE ==========
+        
+        logger.info("\n### A. ACTIVE IMOBILIZATE ###\n")
+        
+        # I. IMOBILIZĂRI NECORPORALE (rd_01)
+        logger.info("I. IMOBILIZĂRI NECORPORALE (rd_01):")
+        rd_01_componente = {
+            'SD(201)': SD('201'),
+            'SD(203)': SD('203'),
+            'SD(205)': SD('205'),
+            'SD(206)': SD('206'),
+            'SD(2071)': SD('2071'),
+            'SD(4094)': SD('4094'),
+            'SD(208)': SD('208'),
+            'SC(280)': -SC('280'),
+            'SC(290)': -SC('290'),
+            'SC(4904)': -SC('4904')
+        }
+        for key, val in rd_01_componente.items():
+            if val != 0:
+                logger.info(f"  {key} = {val:.2f}")
+        rezultate['rd_01'] = sum(rd_01_componente.values())
+        logger.info(f"  → TOTAL rd_01 = {rezultate['rd_01']:.2f}\n")
+        
+        # II. IMOBILIZĂRI CORPORALE (rd_02)
+        logger.info("II. IMOBILIZĂRI CORPORALE (rd_02):")
+        rd_02_componente = {
+            'SD(211)': SD('211'), 'SD(212)': SD('212'), 'SD(213)': SD('213'),
+            'SD(214)': SD('214'), 'SD(215)': SD('215'), 'SD(216)': SD('216'),
+            'SD(217)': SD('217'), 'SD(223)': SD('223'), 'SD(224)': SD('224'),
+            'SD(227)': SD('227'), 'SD(231)': SD('231'), 'SD(235)': SD('235'),
+            'SD(4093)': SD('4093'), 'SC(281)': -SC('281'), 'SC(291)': -SC('291'),
+            'SC(2931)': -SC('2931'), 'SC(2935)': -SC('2935'), 'SC(4903)': -SC('4903')
+        }
+        for key, val in rd_02_componente.items():
+            if val != 0:
+                logger.info(f"  {key} = {val:.2f}")
+        rezultate['rd_02'] = sum(rd_02_componente.values())
+        logger.info(f"  → TOTAL rd_02 = {rezultate['rd_02']:.2f}\n")
+        
+        # III. IMOBILIZĂRI FINANCIARE (rd_03)
+        logger.info("III. IMOBILIZĂRI FINANCIARE (rd_03):")
+        rd_03_componente = {
+            'SD(261)': SD('261'), 'SD(262)': SD('262'), 'SD(263)': SD('263'),
+            'SD(265)': SD('265'), 'SD(267)': SD('267'), 'SC(296)': -SC('296')
+        }
+        for key, val in rd_03_componente.items():
+            if val != 0:
+                logger.info(f"  {key} = {val:.2f}")
+        rezultate['rd_03'] = sum(rd_03_componente.values())
+        logger.info(f"  → TOTAL rd_03 = {rezultate['rd_03']:.2f}\n")
+        
+        # ACTIVE IMOBILIZATE - TOTAL (rd_04)
+        rezultate['rd_04'] = rezultate['rd_01'] + rezultate['rd_02'] + rezultate['rd_03']
+        logger.info(f"ACTIVE IMOBILIZATE - TOTAL (rd_04) = {rezultate['rd_04']:.2f}\n")
+
+        # B. ACTIVE CIRCULANTE
+        logger.info("\n### B. ACTIVE CIRCULANTE ###\n")
+        
+        # I. STOCURI (rd_05)
+        logger.info("I. STOCURI (rd_05):")
+        stocuri_sd = ['301','302','303','321','322','308','323','326','327','328',
+                      '331','332','341','345','346','347','348','351','354','356',
+                      '357','358','361','368','371','378','381','388','4091']
+        stocuri_sc = ['391','392','393','394','395','396','397','398','4901']
+        
+        rd_05_total = 0
+        for cont in stocuri_sd:
+            val = SD(cont)
+            if val != 0:
+                logger.info(f"  SD({cont}) = {val:.2f}")
+                rd_05_total += val
+        
+        for cont in stocuri_sc:
+            val = SC(cont)
+            if val != 0:
+                logger.info(f"  SC({cont}) = -{val:.2f}")
+                rd_05_total -= val
+        
+        rezultate['rd_05'] = rd_05_total
+        logger.info(f"  → TOTAL rd_05 = {rezultate['rd_05']:.2f}\n")
+        
+        # II. CREANȚE (rd_06)
+        logger.info("II. CREANȚE (rd_06):")
+        logger.info("  a) Suma de încasat după un an (rd_06a):")
+        
+        creante_sd = ['4092','411','413','418','425','4282','431','436','437','4382',
+                      '441','4424','4428','444','445','446','447','4482','451','453',
+                      '456','4582','461','4662','473','5187','267']
+        creante_sc = ['491','495','496','4902','296']
+        
+        rd_06a_total = 0
+        for cont in creante_sd:
+            val = SD(cont)
+            if val != 0:
+                logger.info(f"    SD({cont}) = {val:.2f}")
+                rd_06a_total += val
+        
+        for cont in creante_sc:
+            val = SC(cont)
+            if val != 0:
+                logger.info(f"    SC({cont}) = -{val:.2f}")
+                rd_06a_total -= val
+        
+        rezultate['rd_06a'] = rd_06a_total
+        logger.info(f"    → TOTAL rd_06a = {rezultate['rd_06a']:.2f}")
+        
+        logger.info("  b) Suma de încasat într-un an (rd_06b):")
+        rezultate['rd_06b'] = SD('463')
+        logger.info(f"    SD(463) = {rezultate['rd_06b']:.2f}")
+        logger.info(f"    → TOTAL rd_06b = {rezultate['rd_06b']:.2f}")
+        
+        rezultate['rd_06'] = rezultate['rd_06a'] + rezultate['rd_06b']
+        logger.info(f"  → TOTAL CREANȚE (rd_06) = {rezultate['rd_06']:.2f}\n")
+        
+        # III. INVESTIȚII PE TERMEN SCURT (rd_07)
+        logger.info("III. INVESTIȚII PE TERMEN SCURT (rd_07):")
+        investitii_sd = ['501','505','506','507','508','5113','5114']
+        investitii_sc = ['591','595','596','598']
+        
+        rd_07_total = 0
+        for cont in investitii_sd:
+            val = SD(cont)
+            if val != 0:
+                logger.info(f"  SD({cont}) = {val:.2f}")
+                rd_07_total += val
+        
+        for cont in investitii_sc:
+            val = SC(cont)
+            if val != 0:
+                logger.info(f"  SC({cont}) = -{val:.2f}")
+                rd_07_total -= val
+        
+        rezultate['rd_07'] = rd_07_total
+        logger.info(f"  → TOTAL rd_07 = {rezultate['rd_07']:.2f}\n")
+        
+        # IV. CASA ȘI CONTURI LA BĂNCI (rd_08)
+        logger.info("IV. CASA ȘI CONTURI LA BĂNCI (rd_08):")
+        casa_conturi = ['508','5112','512','531','532','541','542']
+        
+        rd_08_total = 0
+        for cont in casa_conturi:
+            val = SD(cont)
+            if val != 0:
+                logger.info(f"  SD({cont}) = {val:.2f}")
+                rd_08_total += val
+        
+        rezultate['rd_08'] = rd_08_total
+        logger.info(f"  → TOTAL rd_08 = {rezultate['rd_08']:.2f}\n")
+        
+        # ACTIVE CIRCULANTE - TOTAL (rd_09)
+        rezultate['rd_09'] = (
+            rezultate['rd_05'] + rezultate['rd_06'] + 
+            rezultate['rd_07'] + rezultate['rd_08']
+        )
+        logger.info(f"ACTIVE CIRCULANTE - TOTAL (rd_09) = {rezultate['rd_09']:.2f}\n")
+
+        # C. CHELTUIELI ÎN AVANS (rd_10)
+        logger.info("\n### C. CHELTUIELI ÎN AVANS ###\n")
+        rezultate['rd_11'] = float(sold_471_1an)  # Sub un an
+        rezultate['rd_12'] = float(sold_471_peste1an)  # Peste un an
+        rezultate['rd_10'] = rezultate['rd_11'] + rezultate['rd_12']
+        logger.info(f"Sub un an (rd_11) = {rezultate['rd_11']:.2f}")
+        logger.info(f"Peste un an (rd_12) = {rezultate['rd_12']:.2f}")
+        logger.info(f"TOTAL (rd_10) = {rezultate['rd_10']:.2f}\n")
+
+        # D. DATORII: SUMELE CARE TREBUIE PLĂTITE ÎNTR-O PERIOADĂ DE PÂNĂ LA UN AN (rd_13)
+        logger.info("\n### D. DATORII CURENTE (rd_13) ###\n")
+        datorii_sc = ['161','162','166','167','168','269','401','403','404','405',
+                      '408','419','421','423','424','426','427','4281','431','436',
+                      '437','4381','441','4423','444','446','447','4481','451','453',
+                      '455','456','457','4581','462','4661','467','473','509','5186','519','4428']
+        
+        rd_13_total = 0
+        for cont in datorii_sc:
+            val = SC(cont)
+            if val != 0:
+                logger.info(f"  SC({cont}) = {val:.2f}")
+                rd_13_total += val
+        
+        val_169 = SD('169')
+        if val_169 != 0:
+            logger.info(f"  SD(169) = -{val_169:.2f}")
+            rd_13_total -= val_169
+        
+        rezultate['rd_13'] = rd_13_total
+        logger.info(f"  → TOTAL rd_13 = {rezultate['rd_13']:.2f}\n")
+
+        # ACTIVE CIRCULANTE NETE / DATORII CURENTE NETE (rd_14)
+        rezultate['rd_14'] = (
+            rezultate['rd_09'] + rezultate['rd_11'] - 
+            rezultate['rd_13'] - float(sold_475_1an) - 
+            float(sold_472_1an) - float(sold_478_1an)
+        )
+        logger.info(f"ACTIVE CIRCULANTE NETE (rd_14) = {rezultate['rd_14']:.2f}")
+        logger.info(f"  = rd_09({rezultate['rd_09']:.2f}) + rd_11({rezultate['rd_11']:.2f}) - rd_13({rezultate['rd_13']:.2f}) - sold_475_1an({float(sold_475_1an):.2f}) - sold_472_1an({float(sold_472_1an):.2f}) - sold_478_1an({float(sold_478_1an):.2f})\n")
+
+        # TOTAL ACTIVE MINUS DATORII CURENTE (rd_15)
+        rezultate['rd_15'] = rezultate['rd_04'] + rezultate['rd_12'] + rezultate['rd_14']
+        logger.info(f"TOTAL ACTIVE MINUS DATORII CURENTE (rd_15) = {rezultate['rd_15']:.2f}")
+        logger.info(f"  = rd_04({rezultate['rd_04']:.2f}) + rd_12({rezultate['rd_12']:.2f}) + rd_14({rezultate['rd_14']:.2f})\n")
+
+        # ========== PASIVE ==========
+        
+        logger.info("\n### E. PROVIZIOANE ###\n")
+        
+        # Venituri în avans (rd_19)
+        rezultate['rd_20'] = float(sold_475_1an)
+        rezultate['rd_21'] = float(sold_475_peste1an)
+        rezultate['rd_19'] = rezultate['rd_20'] + rezultate['rd_21']
+        logger.info(f"Venituri în avans (rd_19):")
+        logger.info(f"  Sub un an (rd_20) = {rezultate['rd_20']:.2f}")
+        logger.info(f"  Peste un an (rd_21) = {rezultate['rd_21']:.2f}")
+        logger.info(f"  TOTAL = {rezultate['rd_19']:.2f}\n")
+        
+        # Subvenții pentru investiții (rd_22)
+        rezultate['rd_23'] = float(sold_472_1an)
+        rezultate['rd_24'] = float(sold_472_peste1an)
+        rezultate['rd_22'] = rezultate['rd_23'] + rezultate['rd_24']
+        logger.info(f"Subvenții pentru investiții (rd_22):")
+        logger.info(f"  Sub un an (rd_23) = {rezultate['rd_23']:.2f}")
+        logger.info(f"  Peste un an (rd_24) = {rezultate['rd_24']:.2f}")
+        logger.info(f"  TOTAL = {rezultate['rd_22']:.2f}\n")
+        
+        # Alte provizioane (rd_25)
+        rezultate['rd_26'] = float(sold_478_1an)
+        rezultate['rd_27'] = float(sold_478_peste1an)
+        rezultate['rd_25'] = rezultate['rd_26'] + rezultate['rd_27']
+        logger.info(f"Alte provizioane (rd_25):")
+        logger.info(f"  Sub un an (rd_26) = {rezultate['rd_26']:.2f}")
+        logger.info(f"  Peste un an (rd_27) = {rezultate['rd_27']:.2f}")
+        logger.info(f"  TOTAL = {rezultate['rd_25']:.2f}\n")
+        
+        # Provizioane pentru pensii și obligații similare (rd_28)
+        rezultate['rd_28'] = SC('2075')
+        logger.info(f"Provizioane pentru pensii (rd_28):")
+        logger.info(f"  SC(2075) = {rezultate['rd_28']:.2f}\n")
+        
+        # TOTAL PROVIZIOANE (rd_18)
+        rezultate['rd_18'] = (
+            rezultate['rd_19'] + rezultate['rd_22'] + 
+            rezultate['rd_25'] + rezultate['rd_28']
+        )
+        logger.info(f"TOTAL PROVIZIOANE (rd_18) = {rezultate['rd_18']:.2f}\n")
+
+        # F. CAPITAL ȘI REZERVE
+        logger.info("\n### F. CAPITAL ȘI REZERVE ###\n")
+        
+        # Capitaluri cu sold creditor
+        capital_sc = {
+            'rd_29': ('1012', 'Capital subscris vărsat'),
+            'rd_30': ('1011', 'Capital subscris nevărsat'),
+            'rd_31': ('1015', 'Prime de capital'),
+            'rd_32': ('1018', 'Alte datorii'),
+            'rd_33': ('1031', 'Rezerve din reevaluare'),
+            'rd_34': ('104', 'Prime legate de capitaluri proprii'),
+            'rd_35': ('105', 'Diferențe de curs valutar'),
+            'rd_36': ('106', 'Rezerve'),
+            'rd_37': ('141', 'Profit sau pierdere reportată')
+        }
+        
+        for rd_key, (cont, descriere) in capital_sc.items():
+            val = SC(cont)
+            rezultate[rd_key] = val
+            if val != 0:
+                logger.info(f"{rd_key} - SC({cont}) [{descriere}] = {val:.2f}")
+        
+        # Capitaluri cu sold debitor (se scad)
+        logger.info("\nCapitaluri cu sold debitor (se scad):")
+        capital_sd = {
+            'rd_38': ('109', 'Capital subscris nevărsat'),
+            'rd_39': ('149', 'Pierderi legate de instrumentele de capitaluri proprii'),
+            'rd_40': ('117', 'Diferențe de curs valutar'),
+            'rd_41': ('121', 'Profit sau pierdere')
+        }
+        
+        for rd_key, (cont, descriere) in capital_sd.items():
+            val = SD(cont)
+            rezultate[rd_key] = val
+            if val != 0:
+                logger.info(f"{rd_key} - SD({cont}) [{descriere}] = -{val:.2f}")
+
+        # Adăugăm rândurile 42-45 (dacă există alte conturi specifice)
+        rezultate['rd_42'] = 0
+        rezultate['rd_43'] = 0
+        rezultate['rd_44'] = 0
+        rezultate['rd_45'] = 0
+
+        # TOTAL CAPITAL ȘI REZERVE înainte de repartizare (rd_46)
+        rezultate['rd_46'] = sum(rezultate[f'rd_{i}'] for i in range(29, 46))
+        logger.info(f"\nTOTAL CAPITAL înainte de repartizare (rd_46) = {rezultate['rd_46']:.2f}")
+        
+        # Repartizarea profitului (rd_47)
+        rezultate['rd_47'] = SC('1016')
+        logger.info(f"Repartizarea profitului (rd_47) = {rezultate['rd_47']:.2f}")
+        
+        # Rezultatul exercițiului (rd_48)
+        rezultate['rd_48'] = SC('1017')
+        logger.info(f"Rezultatul exercițiului (rd_48) = {rezultate['rd_48']:.2f}")
+        
+        # CAPITAL ȘI REZERVE - TOTAL (rd_49)
+        rezultate['rd_49'] = rezultate['rd_46'] + rezultate['rd_47'] + rezultate['rd_48']
+        logger.info(f"\nCAPITAL ȘI REZERVE - TOTAL (rd_49) = {rezultate['rd_49']:.2f}")
+        
+        logger.info("\n" + "=" * 80)
+        logger.info("VERIFICARE ECHILIBRARE BILANȚ")
+        logger.info("=" * 80)
+        total_active = rezultate['rd_15']
+        total_pasive = rezultate['rd_49'] + rezultate['rd_18']
+        diferenta = total_active - total_pasive
+        logger.info(f"Total Active (rd_15): {total_active:.2f}")
+        logger.info(f"Total Pasive (rd_49 + rd_18): {total_pasive:.2f}")
+        logger.info(f"Diferență: {diferenta:.2f}")
+        logger.info(f"Echilibrat: {'DA' if abs(diferenta) < 0.01 else 'NU'}")
+        logger.info("=" * 80 + "\n")
+
+        # Convertim toate valorile în float pentru consistență
+        for key in rezultate:
+            rezultate[key] = float(rezultate[key] or 0)
+
+    except Exception as e:
+        print(f"Eroare în calculul bilanțului: {e}")
+        import traceback
+        traceback.print_exc()
+        return {f'rd_{i}': 0.0 for i in range(1, 50)}
+
+    return rezultate
+
+
+@login_required(login_url='login')
+def dashboard_firma_bilant(request):
+    """
+    Afișează pagina cu bilanțul contabil.
+    """
+    firma = request.user
+    
+    # Configurăm logging pentru a afișa în consolă
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(message)s',
+        force=True
+    )
+    
+    try:
+        logger.info("\n" + "=" * 80)
+        logger.info(f"CALCULARE BILANȚ PENTRU FIRMA: {firma}")
+        logger.info("=" * 80 + "\n")
+        
+        # Calculăm situația conturilor
+        situatie_conturi = SituatieConturi(firma)
+        
+        # DEBUG: Afișăm situația conturilor dacă este cerut
+        if request.GET.get('debug'):
+            situatie_conturi.afiseaza_situatie()
+        
+        # Calculăm bilanțul
+        bilant = calculeaza_bilant(situatie_conturi)
+        
+        # Verificăm dacă bilanțul este echilibrat
+        total_active = bilant.get('rd_15', 0)
+        total_pasive = bilant.get('rd_49', 0) + bilant.get('rd_18', 0)
+        
+        diferenta = abs(total_active - total_pasive)
+        bilant_echilibrat = diferenta < 0.01  # Toleranță pentru rotunjiri
+        
+        context = {
+            'firma': firma,
+            'bilant': bilant,
+            'bilant_echilibrat': bilant_echilibrat,
+            'total_active': total_active,
+            'total_pasive': total_pasive,
+            'diferenta': diferenta
+        }
+        
+        return render(request, 'main/dashboard_firma_bilant.html', context)
+        
+    except Exception as e:
+        logger.error(f"EROARE LA AFIȘAREA BILANȚULUI: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
+        
+        return render(request, 'main/dashboard_firma_bilant.html', {
+            'firma': firma,
+            'bilant': {},
+            'bilant_echilibrat': False,
+            'eroare': str(e)
+        })
+
+
+# --- View pentru export Bilanț ---
+@login_required(login_url='login')
+def export_bilant(request):
+    format_ = request.GET.get('format', 'csv')
+    firma = request.user
+
+    S = SituatieConturi(firma)
+    bilant = calculeaza_bilant(S)
+
+    # --- Export CSV ---
+    if format_ == 'csv':
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="bilant.csv"'
+        writer = csv.writer(response)
+        writer.writerow(['Rând', 'Valoare'])
+        for k, v in bilant.items():
+            writer.writerow([k, v])
+        return response
+
+    # --- Export PDF ---
+    elif format_ == 'pdf':
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4)
+        styles = getSampleStyleSheet()
+        data = [['Rând', 'Valoare']] + [[k, v] for k,v in bilant.items()]
+        table = Table(data)
+        table.setStyle(TableStyle([
+            ('BACKGROUND',(0,0),(-1,0),colors.lightblue),
+            ('TEXTCOLOR',(0,0),(-1,0),colors.white),
+            ('ALIGN',(0,0),(-1,-1),'CENTER'),
+            ('FONTNAME',(0,0),(-1,0),'Helvetica-Bold'),
+            ('GRID',(0,0),(-1,-1),0.5,colors.grey)
+        ]))
+        doc.build([Paragraph("Bilanț - Export", styles['Title']), table])
+        pdf = buffer.getvalue()
+        buffer.close()
+        response = HttpResponse(pdf, content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="bilant.pdf"'
+        return response
+
+    else:
+        return HttpResponse("Format invalid", status=400)
 
 
 

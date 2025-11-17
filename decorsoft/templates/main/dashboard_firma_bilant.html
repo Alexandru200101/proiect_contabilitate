@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bilanț Firmă | Nexus Business Suite</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <style>
+        :root {
+            --primary-dark: #0a0a0a;
+            --secondary-dark: #1a1a1a;
+            --accent-red: #ff2e2e;
+            --accent-red-light: #ff6b6b;
+            --cream: #f8f4e5;
+            --cream-light: #fffdf5;
+            --gold: #ffd700;
+            --green: #4CAF50;
+            --blue: #2196F3;
+            --purple: #9c27b0;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5);
+            --gradient: linear-gradient(135deg, var(--accent-red) 0%, var(--accent-red-light) 100%);
+            --gradient-gold: linear-gradient(135deg, var(--gold) 0%, #ffed4e 100%);
+            --gradient-purple: linear-gradient(135deg, var(--purple) 0%, #ba68c8 100%);
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--primary-dark);
+            color: var(--cream);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 3rem;
+            border-bottom: 1px solid var(--glass-border);
+            background: var(--secondary-dark);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(20px);
+        }
+
+        .header-left h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            background: linear-gradient(45deg, var(--cream), var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .header-left p {
+            color: var(--cream);
+            opacity: 0.7;
+            font-size: 1.1rem;
+        }
+
+        .back-button {
+            background: var(--gradient);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .back-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .back-button:hover::before {
+            left: 100%;
+        }
+
+        /* Container Principal */
+        .dashboard-container {
+            padding: 2rem 3rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Bară de acțiuni */
+        .actions-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            gap: 1.5rem;
+        }
+
+        .refresh-button {
+            background: var(--gradient-purple);
+            color: white;
+            border: none;
+            padding: 16px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .refresh-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .refresh-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .refresh-button:hover::before {
+            left: 100%;
+        }
+
+        .export-button {
+            background: var(--gradient);
+            color: white;
+            border: none;
+            padding: 16px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .export-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .export-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .export-button:hover::before {
+            left: 100%;
+        }
+
+        /* Modal pentru Export */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--secondary-dark);
+            padding: 2.5rem;
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-lg);
+            max-width: 500px;
+            width: 90%;
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -60%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--cream);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--cream);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+            padding: 0.5rem;
+            border-radius: 8px;
+        }
+
+        .close-modal:hover {
+            background: var(--accent-red);
+            transform: rotate(90deg);
+        }
+
+        .export-options {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .export-option {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .export-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(8px);
+            border-color: var(--accent-red);
+        }
+
+        .export-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            background: var(--gradient);
+        }
+
+        .export-info h3 {
+            color: var(--cream);
+            margin-bottom: 0.25rem;
+            font-weight: 600;
+        }
+
+        .export-info p {
+            color: var(--cream);
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .btn-secondary {
+            background: var(--glass);
+            color: var(--cream);
+            border: 1px solid var(--glass-border);
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 600;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Structura Bilanț */
+        .bilant-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .bilant-section {
+            background: var(--secondary-dark);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(20px);
+        }
+
+        .bilant-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--glass-border);
+            background: linear-gradient(135deg, rgba(255, 46, 46, 0.2) 0%, rgba(255, 107, 107, 0.15) 100%);
+        }
+
+        .bilant-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--cream);
+            text-align: center;
+        }
+
+        .bilant-content {
+            padding: 0;
+        }
+
+        .bilant-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+            transition: var(--transition);
+        }
+
+        .bilant-row:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .bilant-row.total {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 215, 0, 0.05) 100%);
+            border-bottom: 2px solid var(--gold);
+            font-weight: 700;
+        }
+
+        .bilant-row.subtotal {
+            background: rgba(255, 255, 255, 0.02);
+            font-weight: 600;
+        }
+
+        .bilant-label {
+            color: var(--cream);
+            font-size: 0.95rem;
+            flex: 1;
+        }
+
+        .bilant-value {
+            color: var(--gold);
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            text-align: right;
+            min-width: 150px;
+        }
+
+        .bilant-value.negative {
+            color: var(--accent-red-light);
+        }
+
+        .bilant-value.positive {
+            color: var(--green);
+        }
+
+        .bilant-indent {
+            margin-left: 1.5rem;
+        }
+
+        .bilant-indent-2 {
+            margin-left: 3rem;
+        }
+
+        /* Statistici */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background: var(--secondary-dark);
+            padding: 2rem 1.5rem;
+            border-radius: 16px;
+            text-align: center;
+            border: 1px solid var(--glass-border);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        .stat-label {
+            color: var(--cream);
+            opacity: 0.7;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Status bilanț */
+        .balance-status {
+            text-align: center;
+            padding: 2rem;
+            margin: 2rem 0;
+            border-radius: 16px;
+            background: var(--secondary-dark);
+            border: 1px solid var(--glass-border);
+        }
+
+        .balance-status.equilibrat {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(76, 175, 80, 0.05) 100%);
+            border-color: var(--green);
+        }
+
+        .balance-status.dezechilibrat {
+            background: linear-gradient(135deg, rgba(255, 46, 46, 0.1) 0%, rgba(255, 107, 107, 0.05) 100%);
+            border-color: var(--accent-red);
+        }
+
+        .balance-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .balance-icon.equilibrat {
+            color: var(--green);
+        }
+
+        .balance-icon.dezechilibrat {
+            color: var(--accent-red);
+        }
+
+        .balance-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .balance-details {
+            color: var(--cream);
+            opacity: 0.8;
+            margin-bottom: 1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .dashboard-container {
+                padding: 1.5rem;
+            }
+            
+            .bilant-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 1.5rem;
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .dashboard-container {
+                padding: 1rem;
+            }
+
+            .actions-bar {
+                flex-direction: column;
+            }
+
+            .stats-bar {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                padding: 1.5rem;
+                width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <h1>Bilanț Contabil</h1>
+            <p>Situația financiară a firmei - Active și Pasive</p>
+        </div>
+        <a href="{% url 'dashboard_firma' %}" class="back-button">
+            <i class="fas fa-arrow-left"></i>
+            Înapoi la Dashboard
+        </a>
+    </div>
+
+    <!-- Container Principal -->
+    <div class="dashboard-container">
+        <!-- Bară de acțiuni -->
+        <div class="actions-bar">
+            <button class="refresh-button" id="refreshDashboard">
+                <i class="fas fa-sync-alt"></i>
+                Reîmprospătează Datele
+            </button>
+            <button class="export-button" id="openExportModal">
+                <i class="fas fa-download"></i>
+                Export Bilanț
+            </button>
+        </div>
+
+        <!-- Modal pentru Export -->
+        <div class="modal" id="exportModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">Export Bilanț</h2>
+                    <button class="close-modal" id="closeExportModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="export-options">
+                    <div class="export-option" data-format="csv">
+                        <div class="export-icon">
+                            <i class="fas fa-file-csv"></i>
+                        </div>
+                        <div class="export-info">
+                            <h3>Export CSV</h3>
+                            <p>Descarcă datele în format CSV pentru Excel</p>
+                        </div>
+                    </div>
+                    
+                    <div class="export-option" data-format="pdf">
+                        <div class="export-icon">
+                            <i class="fas fa-file-pdf"></i>
+                        </div>
+                        <div class="export-info">
+                            <h3>Export PDF</h3>
+                            <p>Descarcă raportul în format PDF</p>
+                        </div>
+                    </div>
+                    
+
+                </div>
+                
+                <div class="modal-footer">
+                    <button class="btn-secondary" id="cancelExport">Anulează</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistici generale -->
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="stat-number">₡{{ total_active|default:0|floatformat:2 }}</div>
+                <div class="stat-label">Total Active</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">₡{{ total_pasive|default:0|floatformat:2 }}</div>
+                <div class="stat-label">Total Pasive</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">₡{{ bilant.rd_04|default:0|floatformat:2 }}</div>
+                <div class="stat-label">Active Imobilizate</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">₡{{ bilant.rd_09|default:0|floatformat:2 }}</div>
+                <div class="stat-label">Active Circulante</div>
+            </div>
+        </div>
+
+        <!-- Status bilanț -->
+        <div class="balance-status {% if bilant_echilibrat %}equilibrat{% else %}dezechilibrat{% endif %}">
+            <div class="balance-icon {% if bilant_echilibrat %}equilibrat{% else %}dezechilibrat{% endif %}">
+                {% if bilant_echilibrat %}
+                    <i class="fas fa-check-circle"></i>
+                {% else %}
+                    <i class="fas fa-exclamation-triangle"></i>
+                {% endif %}
+            </div>
+            <h3 class="balance-title">
+                {% if bilant_echilibrat %}
+                    Bilanț Echilibrat
+                {% else %}
+                    Bilanț Dezechilibrat
+                {% endif %}
+            </h3>
+            <p class="balance-details">
+                Active: ₡{{ total_active|default:0|floatformat:2 }} | 
+                Pasive: ₡{{ total_pasive|default:0|floatformat:2 }}
+                {% if not bilant_echilibrat %}
+                    | Diferență: ₡{{ diferenta|default:0|floatformat:2 }}
+                {% endif %}
+            </p>
+        </div>
+
+        <!-- Structura Bilanț -->
+        <div class="bilant-container">
+            <!-- Active -->
+            <div class="bilant-section">
+                <div class="bilant-header">
+                    <h2 class="bilant-title">ACTIVE</h2>
+                </div>
+                <div class="bilant-content">
+                    <!-- Active imobilizate -->
+                    <div class="bilant-row">
+                        <div class="bilant-label">A. ACTIVE IMOBILIZATE</div>
+                        <div class="bilant-value">₡{{ bilant.rd_04|default:0|floatformat:2 }}</div>
+                    </div>
+                    
+                    <div class="bilant-row bilant-indent">
+                        <div class="bilant-label">I. Imobilizări necorporale</div>
+                        <div class="bilant-value">₡{{ bilant.rd_01|default:0|floatformat:2 }}</div>
+                    </div>
+                    
+                    <div class="bilant-row bilant-indent">
+                        <div class="bilant-label">II. Imobilizări corporale</div>
+                        <div class="bilant-value">₡{{ bilant.rd_02|default:0|floatformat:2 }}</div>
+                    </div>
+                    
+                    <div class="bilant-row bilant-indent">
+                        <div class="bilant-label">III. Imobilizări financiare</div>
+                        <div class="bilant-value">₡{{ bilant.rd_03|default:0|floatformat:2 }}</div>
+                    </div>
+
+                    <!-- Active circulante -->
+                    <div class="bilant-row total">
+                        <div class="bilant-label">B. ACTIVE CIRCULANTE</div>
+                        <div class="bilant-value">₡{{ bilant.rd_09|default:0|floatformat:2 }}</div>
+                    </div>
+                    
+                    <div class="bilant-row bilant-indent">
+                        <div class="bilant-label">I. Stocuri</div>
+                        <div class="bilant-value">₡{{ bilant.rd_05|default:0|floatformat:2 }}</div>
+                    </div>
+                    
+                    <div class="bilant-row bilant-indent">
+                        <div class="bilant-label">II. Creanțe</div>
+                        <div class="bilant-value">₡{{ bilant.rd_06|default:0|floatformat:2 }}</div>
+                    </div>
+                    
+                    <div class="bilant-row bilant-indent-2">
+                        <div class="bilant-label">a) Clients și alte creanțe</div>
+                        <div class="bilant-value">₡{{ bilant.rd_06a|default:0|floatformat:2 }}</div>
+                    </div>
+                    
+                    <div class="bilant-row bilant-indent-2">
+                        <div class="bilant-label">b) Debitori diverși</div>
+                        <div class="bilant-value">₡{{ bilant.rd_06b|default:0|floatformat:2 }}</div>
+                    </div>
+                    
+                    <div class="bilant-row bilant-indent">
+                        <div class="bilant-label">III. Investiții pe termen scurt</div>
+                        <div class="bilant-value">₡{{ bilant.rd_07|default:0|floatformat:2 }}</div>
+                    </div>
+                    
+                    <div class="bilant-row bilant-indent">
+                        <div class="bilant-label">IV. Casa și conturi la bănci</div>
+                        <div class="bilant-value">₡{{ bilant.rd_08|default:0|floatformat:2 }}</div>
+                    </div>
+
+                    <!-- Cheltuieli în avans -->
+                    <div class="bilant-row">
+                        <div class="bilant-label">C. CHELTUIELI ÎN AVANS</div>
+                        <div class="bilant-value">₡{{ bilant.rd_10|default:0|floatformat:2 }}</div>
+                    </div>
+                    
+                    <div class="bilant-row bilant-indent">
+                        <div class="bilant-label">- până la 1 an</div>
+                        <div class="bilant-value">₡{{ bilant.rd_11|default:0|floatformat:2 }}</div>
+                    </div>
+                    
+                    <div class="bilant-row bilant-indent">
+                        <div class="bilant-label">- peste 1 an</div>
+                        <div class="bilant-value">₡{{ bilant.rd_12|default:0|floatformat:2 }}</div>
+                    </div>
+
+                    <!-- Total active -->
+                    <div class="bilant-row total">
+                        <div class="bilant-label">TOTAL ACTIVE</div>
+                        <div class="bilant-value">₡{{ total_active|default:0|floatformat:2 }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pasive -->
+            <div class="bilant-section">
+                <div class="bilant-header">
+                    <h2 class="bilant-title">PASIVE</h2>
+                </div>
+                <div class="bilant-content">
+                    <!-- Datorii -->
+                    <div class="bilant-row">
+                        <div class="bilant-label">D. DATORII</div>
+                        <div class="bilant-value">₡{{ bilant.rd_13|default:0|floatformat:2 }}</div>
+                    </div>
+
+                    <!-- Provizioane -->
+                    <div class="bilant-row">
+                        <div class="bilant-label">E. PROVIZIOANE</div>
+                        <div class="bilant-value">₡{{ bilant.rd_18|default:0|floatformat:2 }}</div>
+                    </div>
+                    
+                    <div class="bilant-row bilant-indent">
+                        <div class="bilant-label">- pentru riscuri și cheltuieli</div>
+                        <div class="bilant-value">₡{{ bilant.rd_19|default:0|floatformat:2 }}</div>
+                    </div>
+                    
+                    <div class="bilant-row bilant-indent-2">
+                        <div class="bilant-label">• până la 1 an</div>
+                        <div class="bilant-value">₡{{ bilant.rd_20|default:0|floatformat:2 }}</div>
+                    </div>
+                    
+                    <div class="bilant-row bilant-indent-2">
+                        <div class="bilant-label">• peste 1 an</div>
+                        <div class="bilant-value">₡{{ bilant.rd_21|default:0|floatformat:2 }}</div>
+                    </div>
+                    
+                    <div class="bilant-row bilant-indent">
+                        <div class="bilant-label">- pentru impozitul amânat</div>
+                        <div class="bilant-value">₡{{ bilant.rd_22|default:0|floatformat:2 }}</div>
+                    </div>
+                    
+                    <div class="bilant-row bilant-indent-2">
+                        <div class="bilant-label">• până la 1 an</div>
+                        <div class="bilant-value">₡{{ bilant.rd_23|default:0|floatformat:2 }}</div>
+                    </div>
+                    
+                    <div class="bilant-row bilant-indent-2">
+                        <div class="bilant-label">• peste 1 an</div>
+                        <div class="bilant-value">₡{{ bilant.rd_24|default:0|floatformat:2 }}</div>
+                    </div>
+                    
+                    <div class="bilant-row bilant-indent">
+                        <div class="bilant-label">- alte provizioane</div>
+                        <div class="bilant-value">₡{{ bilant.rd_25|default:0|floatformat:2 }}</div>
+                    </div>
+                    
+                    <div class="bilant-row bilant-indent-2">
+                        <div class="bilant-label">• până la 1 an</div>
+                        <div class="bilant-value">₡{{ bilant.rd_26|default:0|floatformat:2 }}</div>
+                    </div>
+                    
+                    <div class="bilant-row bilant-indent-2">
+                        <div class="bilant-label">• peste 1 an</div>
+                        <div class="bilant-value">₡{{ bilant.rd_27|default:0|floatformat:2 }}</div>
+                    </div>
+
+                    <!-- Capital și rezerve -->
+                    <div class="bilant-row total">
+                        <div class="bilant-label">F. CAPITALURI PROPRII</div>
+                        <div class="bilant-value">₡{{ bilant.rd_49|default:0|floatformat:2 }}</div>
+                    </div>
+                    
+                    <div class="bilant-row bilant-indent">
+                        <div class="bilant-label">Capital subscris vărsat</div>
+                        <div class="bilant-value">₡{{ bilant.rd_29|default:0|floatformat:2 }}</div>
+                    </div>
+                    
+                    <div class="bilant-row bilant-indent">
+                        <div class="bilant-label">Prime de capital</div>
+                        <div class="bilant-value">₡{{ bilant.rd_31|default:0|floatformat:2 }}</div>
+                    </div>
+                    
+                    <div class="bilant-row bilant-indent">
+                        <div class="bilant-label">Rezerve din reevaluare</div>
+                        <div class="bilant-value">₡{{ bilant.rd_33|default:0|floatformat:2 }}</div>
+                    </div>
+                    
+                    <div class="bilant-row bilant-indent">
+                        <div class="bilant-label">Rezerve</div>
+                        <div class="bilant-value">₡{{ bilant.rd_36|default:0|floatformat:2 }}</div>
+                    </div>
+                    
+                    <div class="bilant-row bilant-indent">
+                        <div class="bilant-label">Rezultat reportat</div>
+                        <div class="bilant-value">₡{{ bilant.rd_37|default:0|floatformat:2 }}</div>
+                    </div>
+                    
+                    <div class="bilant-row bilant-indent">
+                        <div class="bilant-label">Rezultatul exercițiului</div>
+                        <div class="bilant-value">₡{{ bilant.rd_48|default:0|floatformat:2 }}</div>
+                    </div>
+
+                    <!-- Total pasive -->
+                    <div class="bilant-row total">
+                        <div class="bilant-label">TOTAL PASIVE</div>
+                        <div class="bilant-value">₡{{ total_pasive|default:0|floatformat:2 }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const refreshBtn = document.getElementById('refreshDashboard');
+            const exportModal = document.getElementById('exportModal');
+            const openExportModalBtn = document.getElementById('openExportModal');
+            const closeExportModalBtn = document.getElementById('closeExportModal');
+            const cancelExportBtn = document.getElementById('cancelExport');
+            const exportOptions = document.querySelectorAll('.export-option');
+
+            // Reîmprospătează dashboard-ul
+            refreshBtn.addEventListener('click', function() {
+                showNotification('Se reîmprospătează datele...', 'info');
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            });
+
+            // Deschide modalul de export
+            openExportModalBtn.addEventListener('click', function() {
+                exportModal.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            });
+
+            // Închide modalul de export
+            function closeExportModal() {
+                exportModal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+
+            closeExportModalBtn.addEventListener('click', closeExportModal);
+            cancelExportBtn.addEventListener('click', closeExportModal);
+
+            // Închide modalul când se apasă în afara conținutului
+            exportModal.addEventListener('click', function(e) {
+                if (e.target === exportModal) {
+                    closeExportModal();
+                }
+            });
+
+            // Gestionează selecția formatului de export
+            exportOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const format = this.getAttribute('data-format');
+                    exportBilant(format);
+                });
+            });
+
+            // Funcție pentru export
+            function exportBilant(format) {
+                showNotification(`Se generează exportul în format ${format.toUpperCase()}...`, 'info');
+                
+                let url;
+                switch(format) {
+                    case 'csv':
+                        url = "{% url 'export_bilant' %}?format=csv";
+                        break;
+                    case 'pdf':
+                        url = "{% url 'export_bilant' %}?format=pdf";
+                        break;
+                    case 'excel':
+                        url = "{% url 'export_bilant' %}?format=excel";
+                        break;
+                    default:
+                        url = "{% url 'export_bilant' %}?format=csv";
+                }
+                
+                // Folosim fetch pentru a detecta erorile
+                fetch(url)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Eroare server: ${response.status}`);
+                        }
+                        return response.blob();
+                    })
+                    .then(blob => {
+                        // Crează un link pentru descărcare
+                        const downloadUrl = window.URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = downloadUrl;
+                        
+                        // Setează numele fișierului în funcție de format
+                        const timestamp = new Date().toISOString().split('T')[0];
+                        let extension = format;
+                        if (format === 'excel') extension = 'xls';
+                        link.download = `bilant_${timestamp}.${extension}`;
+                        
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        window.URL.revokeObjectURL(downloadUrl);
+                        
+                        closeExportModal();
+                        showNotification(`Export ${format.toUpperCase()} generat cu succes!`, 'success');
+                    })
+                    .catch(error => {
+                        console.error('Eroare export:', error);
+                        closeExportModal();
+                        showNotification(`Eroare la export: ${error.message}`, 'error');
+                    });
+            }
+
+            // Funcție pentru afișarea notificărilor
+            function showNotification(message, type) {
+                // Creează elementul de notificare
+                const notification = document.createElement('div');
+                let backgroundColor, icon;
+                
+                switch(type) {
+                    case 'success':
+                        backgroundColor = '#4CAF50';
+                        icon = 'fas fa-check-circle';
+                        break;
+                    case 'error':
+                        backgroundColor = '#f44336';
+                        icon = 'fas fa-exclamation-circle';
+                        break;
+                    case 'info':
+                        backgroundColor = '#2196F3';
+                        icon = 'fas fa-info-circle';
+                        break;
+                    default:
+                        backgroundColor = '#2196F3';
+                        icon = 'fas fa-info-circle';
+                }
+                
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: ${backgroundColor};
+                    color: white;
+                    padding: 1rem 2rem 1rem 1rem;
+                    border-radius: 12px;
+                    z-index: 10000;
+                    animation: slideInRight 0.3s ease-out;
+                    box-shadow: var(--shadow);
+                    max-width: 400px;
+                    font-weight: 600;
+                    backdrop-filter: blur(20px);
+                    border: 1px solid rgba(255,255,255,0.1);
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                `;
+                
+                notification.innerHTML = `
+                    <i class="${icon}"></i>
+                    <span>${message}</span>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                // Șterge notificarea după 4 secunde
+                setTimeout(function() {
+                    notification.style.animation = 'slideOutRight 0.3s ease-out forwards';
+                    setTimeout(function() { 
+                        if (notification.parentNode) {
+                            notification.parentNode.removeChild(notification); 
+                        }
+                    }, 300);
+                }, 4000);
+            }
+
+            // Adaugă animațiile pentru notificări
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideInRight { 
+                    from { transform: translateX(100%); opacity: 0; } 
+                    to { transform: translateX(0); opacity: 1; } 
+                } 
+                @keyframes slideOutRight { 
+                    from { transform: translateX(0); opacity: 1; } 
+                    to { transform: translateX(100%); opacity: 0; } 
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Adaugă interacțiune pentru rândurile bilanțului
+            const bilantRows = document.querySelectorAll('.bilant-row');
+            bilantRows.forEach(function(row) {
+                row.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateX(4px)';
+                });
+                
+                row.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateX(0)';
+                });
+            });
+
+            // Verifică echilibrul bilanțului și afișează notificare dacă este cazul
+            const totalActive = parseFloat("{{ total_active|default:0 }}") || 0;
+            const totalPasive = parseFloat("{{ total_pasive|default:0 }}") || 0;
+            const diferenta = Math.abs(totalActive - totalPasive);
+            
+            if (diferenta > 0.01) {
+                showNotification(`Atenție: Bilanțul nu este echilibrat! Diferență: ${diferenta.toFixed(2)}`, 'error');
+            }
+        });
+    </script>
+</body>
+</html>

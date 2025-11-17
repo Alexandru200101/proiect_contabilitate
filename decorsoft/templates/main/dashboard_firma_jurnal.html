@@ -21,12 +21,14 @@
             --green: #4CAF50;
             --blue: #2196F3;
             --purple: #9c27b0;
+            --orange: #FF9800;
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5);
             --gradient: linear-gradient(135deg, var(--accent-red) 0%, var(--accent-red-light) 100%);
             --gradient-gold: linear-gradient(135deg, var(--gold) 0%, #ffed4e 100%);
             --gradient-purple: linear-gradient(135deg, var(--purple) 0%, #ba68c8 100%);
+            --gradient-orange: linear-gradient(135deg, var(--orange) 0%, #FF5722 100%);
             --glass: rgba(255, 255, 255, 0.05);
             --glass-border: rgba(255, 255, 255, 0.1);
         }
@@ -164,6 +166,49 @@
             display: flex;
             gap: 1rem;
             align-items: center;
+        }
+
+        /* Buton nou pentru import */
+        .import-button {
+            background: var(--gradient-orange);
+            color: white;
+            border: none;
+            padding: 16px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .import-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .import-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .import-button:hover::before {
+            left: 100%;
+        }
+
+        .import-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
         }
 
         /* Buton nou pentru completare conturi */
@@ -473,6 +518,30 @@
             width: 4px;
             background: var(--gradient);
             border-radius: 0 4px 4px 0;
+        }
+
+        /* Stil pentru rândurile TVA */
+        .jurnal-table tbody tr.tva-row {
+            background: rgba(255, 193, 7, 0.05);
+        }
+
+        .jurnal-table tbody tr.tva-row:hover {
+            background: rgba(255, 193, 7, 0.08);
+        }
+
+        .jurnal-table tbody tr.tva-row td {
+            color: rgba(255, 255, 255, 0.7);
+            font-style: italic;
+        }
+
+        .tva-badge {
+            background: #ffc107;
+            color: #000;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            margin-left: 5px;
         }
 
         /* Coloană checkbox */
@@ -1058,7 +1127,21 @@
             font-weight: 500;
         }
 
-        .alert-warning i {
+        .alert-info {
+            background: rgba(33, 150, 243, 0.1);
+            border: 1px solid rgba(33, 150, 243, 0.3);
+            color: #2196F3;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+
+        .alert-warning i,
+        .alert-info i {
             font-size: 1.2rem;
         }
 
@@ -1149,6 +1232,11 @@
                 <input type="text" id="searchInput" placeholder="Caută după document, explicații...">
             </div>
             <div class="action-buttons-container">
+                <!-- BUTON NOU PENTRU IMPORT -->
+                <button class="import-button" id="importButton">
+                    <i class="fas fa-file-import"></i>
+                    Import CSV
+                </button>
                 <!-- BUTON NOU PENTRU COMPLETARE CONTURI -->
                 <button class="complete-button" id="completeAccountsBtn">
                     <i class="fas fa-calculator"></i>
@@ -1229,12 +1317,15 @@
                 </thead>
                 <tbody id="registruTableBody">
                     {% for registru in registre %}
-                    <tr data-id="{{ registru.id }}">
+                    <tr data-id="{{ registru.id }}" class="{% if 'TVA' in registru.feldoc %}tva-row{% endif %}">
                         <td class="checkbox-cell">
                             <input type="checkbox" class="rowCheckbox" value="{{ registru.id }}">
                         </td>
                         <td class="number-cell">{{ registru.nrdoc }}</td>
-                        <td class="document-cell">{{ registru.feldoc }}</td>
+                        <td class="document-cell">
+                            {{ registru.feldoc }}
+                            {% if 'TVA' in registru.feldoc %}<span class="tva-badge">TVA</span>{% endif %}
+                        </td>
                         <td class="date-cell">{{ registru.datadoc|date:"d.m.Y" }}</td>
                         <td class="amount-cell debit-amount">{{ registru.debit }}</td>
                         <td class="amount-cell credit-amount">{{ registru.credit }}</td>
@@ -1242,12 +1333,16 @@
                         <td class="explicatii-cell">{{ registru.explicatii }}</td>
                         <td class="actions-cell">
                             <div class="action-buttons">
+                                {% if 'TVA' not in registru.feldoc %}
                                 <button class="btn btn-edit" data-id="{{ registru.id }}">
                                     <i class="fas fa-edit"></i> Modifică
                                 </button>
                                 <button class="btn btn-delete" data-id="{{ registru.id }}">
                                     <i class="fas fa-trash"></i> Șterge
                                 </button>
+                                {% else %}
+                                <span style="color: var(--cream); opacity: 0.6; font-size: 0.8rem;">Auto-generat</span>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>
@@ -1288,6 +1383,11 @@
                     <i class="fas fa-exclamation-triangle"></i>
                     <span>Atenție! Data selectată nu este din luna și anul curent.</span>
                 </div>
+
+                <div class="alert-info" id="tvaInfo">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Pentru conturile de cheltuieli (6xx) sau venituri (7xx), TVA-ul de 21% va fi calculat și adăugat automat.</span>
+                </div>
                 
                 <div class="form-row">
                     <div class="form-group">
@@ -1312,6 +1412,7 @@
                     <div class="form-group">
                         <label for="suma">Suma *</label>
                         <input type="number" id="suma" name="suma" step="0.01" required placeholder="0.00">
+                        <div class="form-help">Suma totală inclusiv TVA (dacă este cazul)</div>
                         <div class="error-message" id="sumaError"></div>
                     </div>
                 </div>
@@ -1387,22 +1488,63 @@
         </div>
     </div>
 
+    <!-- Modal pentru Import CSV -->
+    <div class="modal-overlay" id="importModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Importă Operațiuni din CSV</h3>
+                <button class="close-modal" id="closeImportModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="importForm" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="csv_file">Selectează fișierul CSV</label>
+                    <input type="file" id="csv_file" name="csv_file" accept=".csv" required>
+                    <div class="form-help">Fișierul trebuie să fie în format CSV cu următoarele coloane: feldoc, nrdoc, datadoc, debit, credit, suma, explicatii</div>
+                    <div class="error-message" id="csvFileError"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Structura fișierului CSV:</label>
+                    <div style="background: var(--primary-dark); padding: 1rem; border-radius: 8px; margin-top: 0.5rem; font-family: monospace; font-size: 0.9rem;">
+                        feldoc,nrdoc,datadoc,debit,credit,suma,explicatii<br>
+                        FACT,1,2024-01-15,5121,4111,1000.00,Factură client<br>
+                        CH,2,2024-01-16,401,5311,500.00,Plată furnizor
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="importSubmitBtn">
+                    <i class="fas fa-file-import"></i>
+                    <span id="importSubmitText">Importă Fișier</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const modal = document.getElementById('operationModal');
             const exportModal = document.getElementById('exportModal');
+            const importModal = document.getElementById('importModal');
             const modalTitle = document.getElementById('modalTitle');
             const operationId = document.getElementById('operationId');
             const nrdocInput = document.getElementById('nrdoc');
             const addBtn = document.getElementById('addOperationBtn');
             const exportBtn = document.getElementById('exportButton');
+            const importBtn = document.getElementById('importButton');
             const completeAccountsBtn = document.getElementById('completeAccountsBtn');
             const closeBtn = document.getElementById('closeModal');
             const closeExportBtn = document.getElementById('closeExportModal');
+            const closeImportBtn = document.getElementById('closeImportModal');
             const form = document.getElementById('operationForm');
+            const importForm = document.getElementById('importForm');
             const searchInput = document.getElementById('searchInput');
             const submitBtn = document.getElementById('submitBtn');
+            const importSubmitBtn = document.getElementById('importSubmitBtn');
             const submitText = document.getElementById('submitText');
+            const importSubmitText = document.getElementById('importSubmitText');
             const tableBody = document.getElementById('registruTableBody');
             const emptyState = document.getElementById('emptyState');
             const exportOptions = document.querySelectorAll('.export-option');
@@ -1413,8 +1555,11 @@
             const selectedCountElement = document.getElementById('selectedCount');
             const negativeSumAlert = document.getElementById('negativeSumAlert');
             const dateWarningAlert = document.getElementById('dateWarningAlert');
+            const tvaInfo = document.getElementById('tvaInfo');
             const sumaInput = document.getElementById('suma');
             const datadocInput = document.getElementById('datadoc');
+            const debitSelect = document.getElementById('debit');
+            const creditSelect = document.getElementById('credit');
             const resultsContainer = document.getElementById('resultsContainer');
             const resultTitle = document.getElementById('resultTitle');
             const resultStats = document.getElementById('resultStats');
@@ -1475,9 +1620,28 @@
                 });
             }
 
+            // Funcție pentru a verifica dacă o operațiune necesită TVA
+            function checkTvaNeeded() {
+                const debit = $('#debit').val();
+                const credit = $('#credit').val();
+                
+                // Verifică dacă debitul începe cu 6 sau creditul începe cu 7
+                const needsTva = (debit && debit.startsWith('6')) || (credit && credit.startsWith('7'));
+                
+                if (needsTva) {
+                    tvaInfo.style.display = 'flex';
+                } else {
+                    tvaInfo.style.display = 'none';
+                }
+            }
+
             // Inițializare la încărcarea paginii
             $(document).ready(function() {
                 initSelect2();
+                
+                // Adăugăm event listeners pentru select2
+                $('#debit').on('change', checkTvaNeeded);
+                $('#credit').on('change', checkTvaNeeded);
             });
 
             // Funcții pentru validare
@@ -1698,6 +1862,7 @@
                 // Resetează alertele
                 negativeSumAlert.style.display = 'none';
                 dateWarningAlert.style.display = 'none';
+                tvaInfo.style.display = 'none';
 
                 modal.style.display = 'flex';
                 document.body.style.overflow = 'hidden';
@@ -1715,6 +1880,12 @@
                 document.body.style.overflow = 'hidden';
             });
 
+            // Deschide modal pentru import
+            importBtn.addEventListener('click', () => {
+                importModal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            });
+
             // Reîmprospătează tabelul
             refreshTableBtn.addEventListener('click', () => {
                 location.reload();
@@ -1723,6 +1894,7 @@
             // Închide modal
             closeBtn.addEventListener('click', closeModal);
             closeExportBtn.addEventListener('click', closeExportModal);
+            closeImportBtn.addEventListener('click', closeImportModal);
 
             // Închide modal la click în afara
             modal.addEventListener('click', (e) => {
@@ -1737,6 +1909,12 @@
                 }
             });
 
+            importModal.addEventListener('click', (e) => {
+                if (e.target === importModal) {
+                    closeImportModal();
+                }
+            });
+
             function closeModal() {
                 modal.style.display = 'none';
                 document.body.style.overflow = 'auto';
@@ -1747,6 +1925,7 @@
                 // Ascunde alertele
                 negativeSumAlert.style.display = 'none';
                 dateWarningAlert.style.display = 'none';
+                tvaInfo.style.display = 'none';
                 isEditMode = false;
             }
 
@@ -1755,11 +1934,23 @@
                 document.body.style.overflow = 'auto';
             }
 
+            function closeImportModal() {
+                importModal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                importForm.reset();
+                hideImportErrors();
+            }
+
             function hideAllErrors() {
                 document.querySelectorAll('.error-message').forEach(error => {
                     error.style.display = 'none';
                     error.textContent = '';
                 });
+            }
+
+            function hideImportErrors() {
+                document.getElementById('csvFileError').style.display = 'none';
+                document.getElementById('csvFileError').textContent = '';
             }
 
             function showError(field, message) {
@@ -1781,7 +1972,7 @@
                 operationId.value = id;
 
                 // Populează formularul cu datele existente
-                document.getElementById('feldoc').value = row.cells[2].textContent;
+                document.getElementById('feldoc').value = row.cells[2].textContent.replace(' TVA', '');
                 nrdocInput.value = row.cells[1].textContent;
                 
                 // Format data pentru datetime-local
@@ -1801,9 +1992,10 @@
                 document.getElementById('suma').value = row.cells[6].textContent.replace('₡', '').trim();
                 document.getElementById('explicatii').value = row.cells[7].textContent;
 
-                // Verifică alertele
+                // Verifică alertele și TVA
                 checkNegativeSum();
                 checkCurrentMonthDate();
+                checkTvaNeeded();
 
                 modal.style.display = 'flex';
                 document.body.style.overflow = 'hidden';
@@ -1816,7 +2008,7 @@
 
             // Funcția de ștergere
             async function deleteOperation(id) {
-                if (!confirm('Sunteți sigur că doriți să ștergeți această operațiune? Această acțiune este ireversibilă.')) {
+                if (!confirm('Sunteți sigur că doriți să ștergeți această operațiune? Această acțiune este ireversibilă și va șterge și orice înregistrare TVA asociată.')) {
                     return;
                 }
 
@@ -1836,9 +2028,22 @@
                     if (data.success) {
                         showNotification(data.message, 'success');
                         
-                        // Elimină rândul din tabel
+                        // Elimină rândul din tabel și orice rând TVA asociat
                         const row = document.querySelector(`tr[data-id="${id}"]`);
                         if (row) {
+                            // Găsește și șterge rândurile TVA asociate (dacă există)
+                            const nrdoc = row.cells[1].textContent;
+                            const feldoc = row.cells[2].textContent.replace(' TVA', '');
+                            
+                            const tvaRows = document.querySelectorAll(`tr[data-id]`);
+                            tvaRows.forEach(tvaRow => {
+                                const tvaNrdoc = tvaRow.cells[1].textContent;
+                                const tvaFeldoc = tvaRow.cells[2].textContent;
+                                if (tvaNrdoc === nrdoc && tvaFeldoc.includes(`${feldoc}-TVA`)) {
+                                    tvaRow.remove();
+                                }
+                            });
+                            
                             row.remove();
                         }
                         
@@ -1884,6 +2089,65 @@
                 showNotification(`Export ${format.toUpperCase()} pentru ${selectedOperations.size} operațiuni a fost inițiat!`, 'success');
                 closeExportModal();
             }
+
+            // Funcționalitate import
+            importForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Ascunde erorile anterioare
+                hideImportErrors();
+                
+                // Disable butonul submit
+                importSubmitBtn.disabled = true;
+                importSubmitText.innerHTML = '<span class="spinner"></span> Se importă...';
+                
+                try {
+                    const formData = new FormData(this);
+                    
+                    const response = await fetch('{% url "import_jurnal_csv" %}', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showNotification(data.message, 'success');
+                        
+                        // Închide modal
+                        closeImportModal();
+                        
+                        // Reîncarcă pagina pentru a actualiza datele
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1500);
+                        
+                    } else {
+                        // Afișează erorile
+                        if (data.message) {
+                            showError('csvFile', data.message);
+                        }
+                        if (data.errors && data.errors.length > 0) {
+                            let errorMessage = 'Erori la import: ' + data.errors.slice(0, 5).join(', ');
+                            if (data.errors.length > 5) {
+                                errorMessage += `... și încă ${data.errors.length - 5} erori`;
+                            }
+                            showError('csvFile', errorMessage);
+                        }
+                        showNotification('Eroare la importul fișierului', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showNotification('Eroare la comunicarea cu serverul', 'error');
+                } finally {
+                    // Reactivează butonul submit
+                    importSubmitBtn.disabled = false;
+                    importSubmitText.innerHTML = 'Importă Fișier';
+                }
+            });
 
             // Căutare în timp real
             searchInput.addEventListener('input', function() {
@@ -1941,7 +2205,7 @@
                         // Închide modal
                         closeModal();
                         
-                        // Reîncarcă pagina pentru a actualiza statisticile
+                        // Reîncarcă pagina pentru a actualiza statisticile și pentru a afișa și înregistrările TVA
                         setTimeout(() => {
                             location.reload();
                         }, 1500);

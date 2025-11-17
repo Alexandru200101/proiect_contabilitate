@@ -102,19 +102,21 @@ class RegistruJurnal(models.Model):
     debit = models.CharField(max_length=15)
     credit = models.CharField(max_length=15)
     suma = models.DecimalField(max_digits=20, decimal_places=2)
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="tva_children"
+    )
 
     def save(self, *args, **kwargs):
-        # dacă e un document nou, setează automat numărul următor
-        # if not self.pk:
-        #     last_doc = RegistruJurnal.objects.filter(firma=self.firma).order_by('-nrdoc').first()
-        #     if last_doc:
-        #         self.nrdoc = last_doc.nrdoc + 1
-        #     else:
-        #         self.nrdoc = 1
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.firma.denumire_firma} - {self.feldoc or 'DOC'} {self.nrdoc}"
+    
+     
     
 
 

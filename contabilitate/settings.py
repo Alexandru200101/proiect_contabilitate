@@ -153,3 +153,39 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # expiră la închiderea browserului da
 SESSION_SAVE_EVERY_REQUEST = True  # reînnoiește durata la fiecare cerere
 
 
+# settings.py
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "[{levelname}] {asctime} {name} | {message}",
+            "style": "{",
+        },
+        "simple": {
+            "format": "[{levelname}] {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": "INFO",  # schimbă în DEBUG dacă vrei mai multe detalii
+            "propagate": True,
+        },
+        # logger-ul tău din view
+        "decorsoft.views": {  # pune numele aplicației tale aici
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+    },
+}
+

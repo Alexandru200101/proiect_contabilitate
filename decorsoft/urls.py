@@ -21,10 +21,16 @@ urlpatterns = [
     path('sterge-registru-ajax/', views.sterge_registru_ajax, name='sterge_registru_ajax'),
     path('export-registru/', views.export_registru, name='export_registru'),    
     path('cont-profit-pierdere/', views.cont_profit_pierdere, name='cont_profit_pierdere'),
+    path('jurnal/import/', views.import_jurnal_csv, name='import_jurnal_csv'),
+
 
     # Gestionare balanta firmă
     path('dashboard-firma-balanta/', views.dashboard_firma_balanta, name='dashboard_firma_balanta'),
+    path('export/balanta/', views.export_balanta, name='export_balanta'),
 
+    # Gestionare bilant firmă
+    path('dashboard-firma-bilant/', views.dashboard_firma_bilant, name='dashboard_firma_bilant'),
+    path('export/bilant/', views.export_bilant, name='export_bilant'),
     
     # Gestionare fisa cont
     path('fisa-cont/', views.dashboard_firma_fisa_cont, name='dashboard_firma_fisa_cont'),

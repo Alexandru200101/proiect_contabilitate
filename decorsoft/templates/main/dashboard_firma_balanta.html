@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rapoarte Firmă | Nexus Business Suite</title>
+    <title>Balanță Firmă | Nexus Business Suite</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -162,6 +162,11 @@
             left: 100%;
         }
 
+        .export-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
         .export-button {
             background: var(--gradient);
             color: white;
@@ -196,6 +201,38 @@
 
         .export-button:hover::before {
             left: 100%;
+        }
+
+        .export-dropdown-content {
+            display: none;
+            position: absolute;
+            background: var(--secondary-dark);
+            min-width: 200px;
+            box-shadow: var(--shadow-lg);
+            z-index: 1000;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+            top: 100%;
+            left: 0;
+            margin-top: 8px;
+        }
+
+        .export-dropdown-content a {
+            color: var(--cream);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            transition: var(--transition);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .export-dropdown-content a:hover {
+            background: var(--accent-red);
+        }
+
+        .export-dropdown:hover .export-dropdown-content {
+            display: block;
         }
 
         /* Statistici */
@@ -445,47 +482,6 @@
             border-left: 3px solid #ffc107;
         }
 
-        .document-cell {
-            width: 110px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .date-cell {
-            text-align: center;
-            width: 130px;
-            font-weight: 600;
-            color: var(--cream-light);
-        }
-
-        .explicatii-cell {
-            min-width: 250px;
-            max-width: 350px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        /* Stiluri pentru tabelul jurnal */
-        .jurnal-table-container {
-            overflow-x: auto;
-        }
-
-        .jurnal-table {
-            min-width: 1200px;
-        }
-
-        /* Stiluri pentru tabelul raport */
-        .raport-table-container {
-            overflow-x: auto;
-        }
-
-        .raport-table {
-            min-width: 1000px;
-        }
-
         /* Empty state */
         .empty-state {
             text-align: center;
@@ -622,8 +618,8 @@
     <!-- Header -->
     <div class="header">
         <div class="header-left">
-            <h1>Rapoarte Firmă</h1>
-            <p>Dashboard complet cu rapoarte contabile</p>
+            <h1>Balanță Contabilă</h1>
+            <p>Raport complet cu situația conturilor</p>
         </div>
         <a href="{% url 'dashboard_firma' %}" class="back-button">
             <i class="fas fa-arrow-left"></i>
@@ -639,36 +635,43 @@
                 <i class="fas fa-sync-alt"></i>
                 Reîmprospătează Datele
             </button>
-            <button class="export-button" id="exportButton">
-                <i class="fas fa-download"></i>
-                Export Rapoarte
-            </button>
+            <div class="export-dropdown">
+                <button class="export-button">
+                    <i class="fas fa-download"></i>
+                    Export Balanță
+                    <i class="fas fa-caret-down"></i>
+                </button>
+                <div class="export-dropdown-content">
+                    <a href="#" id="exportCSV">Export CSV</a>
+                    <a href="#" id="exportPDF">Export PDF</a>
+                </div>
+            </div>
         </div>
 
         <!-- Statistici generale -->
         <div class="stats-bar">
             <div class="stat-card">
-                <div class="stat-number">{{ total_operatiuni }}</div>
-                <div class="stat-label">Total Operațiuni</div>
+                <div class="stat-number">{{ raport_final|length }}</div>
+                <div class="stat-label">Conturi cu Mișcări</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">₡{{ total_general_debit }}</div>
+                <div class="stat-number">₡{{ total_general_debit|default:0 }}</div>
                 <div class="stat-label">Total Debit</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">₡{{ total_general_credit }}</div>
+                <div class="stat-number">₡{{ total_general_credit|default:0 }}</div>
                 <div class="stat-label">Total Credit</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number">{{ raport_final|length }}</div>
-                <div class="stat-label">Conturi cu Mișcări</div>
+                <div class="stat-label">Total Conturi</div>
             </div>
         </div>
 
-        <!-- Tabel Raport Conturi -->
+        <!-- Tabel Balanță Conturi -->
         <div class="table-container">
             <div class="table-header">
-                <h2 class="table-title">Raport pe Conturi</h2>
+                <h2 class="table-title">Balanța Conturilor</h2>
                 <div class="table-actions">
                     <button class="table-action-btn" id="expandAllConturi">
                         <i class="fas fa-expand"></i>
@@ -724,61 +727,7 @@
                             <td colspan="7">
                                 <div class="empty-state">
                                     <i class="fas fa-chart-bar"></i>
-                                    <p>Nu există date pentru raport</p>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Tabel Jurnal General -->
-        <div class="table-container">
-            <div class="table-header">
-                <h2 class="table-title">Registru Jurnal - Toate Operațiunile</h2>
-                <div class="table-actions">
-                    <button class="table-action-btn" id="filterJurnal">
-                        <i class="fas fa-filter"></i>
-                        Filtrează
-                    </button>
-                    <button class="table-action-btn" id="searchJurnal">
-                        <i class="fas fa-search"></i>
-                        Caută
-                    </button>
-                </div>
-            </div>
-            <div class="jurnal-table-container">
-                <table class="data-table jurnal-table">
-                    <thead>
-                        <tr>
-                            <th class="number-cell">Nr. Doc</th>
-                            <th class="document-cell">Tip Doc</th>
-                            <th class="date-cell">Data</th>
-                            <th class="simbol-cell">Cont Debit</th>
-                            <th class="simbol-cell">Cont Credit</th>
-                            <th class="number-cell">Suma</th>
-                            <th class="explicatii-cell">Explicații</th>
-                        </tr>
-                    </thead>
-                    <tbody id="jurnalTableBody">
-                        {% for operatie in operatiuni_jurnal %}
-                        <tr>
-                            <td class="number-cell">{{ operatie.nrdoc }}</td>
-                            <td class="document-cell">{{ operatie.feldoc }}</td>
-                            <td class="date-cell">{{ operatie.datadoc|date:"d.m.Y" }}</td>
-                            <td class="simbol-cell">{{ operatie.debit_cont }}</td>
-                            <td class="simbol-cell">{{ operatie.credit_cont }}</td>
-                            <td class="number-cell sold-debit-amount">₡{{ operatie.suma }}</td>
-                            <td class="explicatii-cell">{{ operatie.explicatii }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7">
-                                <div class="empty-state">
-                                    <i class="fas fa-file-alt"></i>
-                                    <p>Nu există înregistrări în jurnal</p>
+                                    <p>Nu există date pentru balanță</p>
                                 </div>
                             </td>
                         </tr>
@@ -792,38 +741,35 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const refreshBtn = document.getElementById('refreshDashboard');
-            const exportBtn = document.getElementById('exportButton');
+            const exportCSVBtn = document.getElementById('exportCSV');
+            const exportPDFBtn = document.getElementById('exportPDF');
             const expandConturiBtn = document.getElementById('expandAllConturi');
             const collapseConturiBtn = document.getElementById('collapseAllConturi');
-            const filterJurnalBtn = document.getElementById('filterJurnal');
-            const searchJurnalBtn = document.getElementById('searchJurnal');
 
             // Reîmprospătează dashboard-ul
             refreshBtn.addEventListener('click', function() {
                 location.reload();
             });
 
-            // Export rapoarte
-            exportBtn.addEventListener('click', function() {
-                showNotification('Funcționalitatea de export va fi disponibilă în curând!', 'info');
+            // Export CSV
+            exportCSVBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = "{% url 'export_balanta' %}?format=csv";
             });
 
-            // Funcții pentru raport conturi
+            // Export PDF
+            exportPDFBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = "{% url 'export_balanta' %}?format=pdf";
+            });
+
+            // Funcții pentru balanță conturi
             expandConturiBtn.addEventListener('click', function() {
                 showNotification('Toate rândurile au fost extinse', 'success');
             });
 
             collapseConturiBtn.addEventListener('click', function() {
                 showNotification('Toate rândurile au fost restranse', 'success');
-            });
-
-            // Funcții pentru jurnal
-            filterJurnalBtn.addEventListener('click', function() {
-                showNotification('Funcționalitatea de filtrare va fi disponibilă în curând!', 'info');
-            });
-
-            searchJurnalBtn.addEventListener('click', function() {
-                showNotification('Funcționalitatea de căutare va fi disponibilă în curând!', 'info');
             });
 
             // Funcție pentru afișarea notificărilor
@@ -870,7 +816,7 @@
             `;
             document.head.appendChild(style);
 
-            // Adaugă funcționalitate de sortare pentru tabele
+            // Adaugă funcționalitate de sortare pentru tabel
             const tableHeaders = document.querySelectorAll('.data-table th');
             tableHeaders.forEach(header => {
                 header.style.cursor = 'pointer';
