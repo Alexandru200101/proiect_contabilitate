@@ -27,6 +27,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import base64
 from django.db.models import Q
+from django.core.paginator import Paginator
 
 
 
@@ -36,49 +37,65 @@ TVA_IMPLICIT = Decimal('0.21')
 
 # Pagina principală
 def main_view(request):
+    logger.info("Accesat pagina principală")
     return render(request, 'main/main.html')
 
 # Signup utilizator
 def signup_view(request):
+    logger.info("Accesat pagina de signup")
     if request.method == 'POST':
+        logger.debug("Procesare formular signup POST")
         form = SignupForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect('login')  # după signup, redirecționează la login
+            user = form.save()
+            logger.info(f"Utilizator nou înregistrat: {user.email}")
+            return redirect('login')
+        else:
+            logger.warning("Formular signup invalid: %s", form.errors)
     else:
         form = SignupForm()
+        logger.debug("Afisare formular signup GET")
     return render(request, 'main/signup.html', {'form': form})
 
 
 # Login utilizator + tine-ma minte buton
 def login_view(request):
+    logger.info("Accesat pagina de login")
     if request.method == 'POST':
+        logger.debug("Procesare formular login POST")
         form = LoginForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data['email']
             parola = form.cleaned_data['parola']
             remember_checked = request.POST.get('remember') == 'on'
             
+            logger.debug(f"Încercare autentificare pentru: {email}")
             user = authenticate(request, username=email, password=parola)
+            
             if user is not None:
                 login(request, user)
                 # Setează expirarea sesiunii
                 if remember_checked:
-                    
                     request.session.set_expiry(1209600)  # 2 săptămâni
-                    # Setează cookie-ul de sesiune să expire după 2 săptămâni
                     request.session['session_persistent'] = True
+                    logger.debug(f"Sesiune persistentă setată pentru user: {email}")
                 else:
-                    
                     request.session.set_expiry(0)  # expiră la închiderea browserului
                     request.session['session_persistent'] = False
+                    logger.debug(f"Sesiune temporară setată pentru user: {email}")
+                
                 request.session.modified = True
+                logger.info(f"User autentificat cu succes: {email}")
                 
                 return redirect('dashboard_firma')
             else:
+                logger.warning(f"Autentificare eșuată pentru: {email}")
                 messages.error(request, "Email sau parola incorectă")
+        else:
+            logger.warning("Formular login invalid: %s", form.errors)
     else:
         form = LoginForm()
+        logger.debug("Afisare formular login GET")
     return render(request, 'main/login.html', {'form': form})
 
 
@@ -87,6 +104,7 @@ def login_view(request):
 # Dashboard firmă
 @login_required(login_url='/login/')
 def dashboard_firma(request):
+    logger.info(f"Accesat dashboard firmă pentru user: {request.user.email}")
     firma = request.user
     registre = RegistruJurnal.objects.filter(firma=firma)
 
@@ -96,6 +114,8 @@ def dashboard_firma(request):
 
     profit_net = venituri - cheltuieli
 
+    logger.debug(f"Statistici dashboard - Venituri: {venituri}, Cheltuieli: {cheltuieli}, Profit: {profit_net}")
+    
     context = {
         'nr_facturi': registre.count(),
         'venit_total': venituri,
@@ -107,34 +127,55 @@ def dashboard_firma(request):
     return render(request, 'main/dashboard_firma.html', context)
 
 
-# Dashboard registru jurnal + interogare baza de date
 @login_required(login_url='/login/')
 def dashboard_firma_jurnal(request):
+    logger.info(f"Accesat dashboard jurnal pentru user: {request.user.email}")
     firma = request.user
-    registre = RegistruJurnal.objects.filter(firma=firma).order_by('-datadoc')
-    
-    # Totalul folosește doar suma, pentru debit și credit
-    total_suma = registre.aggregate(total=Sum('suma'))['total'] or 0
-    conturi = PlanConturi.objects.all()
 
-    return render(request, 'main/dashboard_firma_jurnal.html', {
-        'registre': registre,
-        'total_debit': total_suma,   # folosim suma
-        'total_credit': total_suma,  # folosim suma
+    # Selectăm doar câmpurile necesare și folosim select_related pentru relații
+    registre_queryset = RegistruJurnal.objects.filter(firma=firma)\
+        .select_related('parent')\
+        .only('datadoc', 'feldoc', 'nrdoc', 'debit', 'credit', 'suma', 'explicatii', 'parent')\
+        .order_by('-datadoc')
+
+    # Paginare cu dimensiune configurabilă
+    page_size = int(request.GET.get('page_size', 50))
+    paginator = Paginator(registre_queryset, page_size)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # Calcul totaluri aggregate (pe toate înregistrările, nu doar pe pagina curentă)
+    total_suma = registre_queryset.aggregate(total=Sum('suma'))['total'] or 0
+
+    # CORECTAT: Folosim 'simbol' în loc de 'cont'
+    conturi = PlanConturi.objects.only('simbol', 'denumire')
+
+    logger.debug(f"Jurnal - {registre_queryset.count()} înregistrări, total sumă: {total_suma}")
+
+    context = {
+        'registre': page_obj,       # pagină curentă
+        'total_debit': total_suma,
+        'total_credit': total_suma,
         'total_suma': total_suma,
-        'conturi': conturi
-    })
+        'conturi': conturi,
+        'page_obj': page_obj,       # pentru template navigation
+        'page_size': page_size      # pentru template
+    }
+
+    return render(request, 'main/dashboard_firma_jurnal.html', context)
 
 # Formular adaugare operatiune + tva automat
 @login_required(login_url='login')
 @require_POST
 def adauga_registru_ajax(request):
+    logger.info(f"Încercare adăugare înregistrare jurnal pentru user: {request.user.email}")
     form = RegistruJurnalForm(request.POST)
 
     if form.is_valid():
         registru = form.save(commit=False)
         registru.firma = request.user
         registru.save()
+        logger.info(f"Înregistrare jurnal creată cu ID: {registru.id} pentru user: {request.user.email}")
 
         tva_operatie = None
         TVA = Decimal("0.21")
@@ -144,6 +185,7 @@ def adauga_registru_ajax(request):
         # ---------------------------------
         if registru.debit == "411":
             valoare_tva = (registru.suma * TVA).quantize(Decimal("0.01"))
+            logger.debug(f"Generare TVA colectată pentru înregistrare {registru.id}: {valoare_tva}")
 
             tva_operatie = RegistruJurnal.objects.create(
                 firma=request.user,
@@ -156,12 +198,14 @@ def adauga_registru_ajax(request):
                 explicatii=f"TVA colectată 21% pentru document {registru.nrdoc}",
                 parent=registru  #  operațiune copil
             )
+            logger.info(f"TVA colectată creată cu ID: {tva_operatie.id}")
 
         # ---------------------------------
         # TVA deductibilă (furnizor) – Credit 401
         # ---------------------------------
         if registru.credit == "401":
             valoare_tva = (registru.suma * TVA).quantize(Decimal("0.01"))
+            logger.debug(f"Generare TVA deductibilă pentru înregistrare {registru.id}: {valoare_tva}")
 
             tva_operatie = RegistruJurnal.objects.create(
                 firma=request.user,
@@ -174,10 +218,12 @@ def adauga_registru_ajax(request):
                 explicatii=f"TVA deductibilă 21% pentru document {registru.nrdoc}",
                 parent=registru  #  operațiune copil
             )
+            logger.info(f"TVA deductibilă creată cu ID: {tva_operatie.id}")
 
         # -----------------------------
         # Răspuns AJAX
         # -----------------------------
+        logger.info(f"Înregistrare {registru.id} adăugată cu succes")
         return JsonResponse({
             'success': True,
             'message': 'Înregistrarea a fost adăugată!',
@@ -194,6 +240,7 @@ def adauga_registru_ajax(request):
         })
 
     else:
+        logger.warning(f"Formular invalid pentru adăugare înregistrare: {form.errors}")
         return JsonResponse({'success': False, 'errors': form.errors}, status=400)
 
 
@@ -203,21 +250,26 @@ def adauga_registru_ajax(request):
 @require_POST
 def sterge_registru_ajax(request):
     id_registru = request.POST.get('id')
+    logger.info(f"Încercare ștergere înregistrare ID: {id_registru} de către user: {request.user.email}")
 
     if not id_registru:
+        logger.error("Lipsă ID înregistrare pentru ștergere")
         return HttpResponseBadRequest("Lipsește ID-ul înregistrării.")
 
     registru = get_object_or_404(RegistruJurnal, id=id_registru)
 
     # verificare că aparține utilizatorului
     if registru.firma != request.user:
+        logger.warning(f"User {request.user.email} a încercat să șteargă înregistrare care nu îi aparține: {id_registru}")
         return HttpResponseForbidden("Nu aveți permisiunea de a șterge această înregistrare.")
 
     # Șterge automat toate operațiunile TVA copil
+    num_tva_sters = registru.tva_children.count()
     registru.tva_children.all().delete()
 
     # Șterge înregistrarea principală
     registru.delete()
+    logger.info(f"Înregistrare {id_registru} și {num_tva_sters} TVA-uri aferente șterse cu succes")
 
     return JsonResponse({
         'success': True,
@@ -229,16 +281,20 @@ def sterge_registru_ajax(request):
 @require_POST
 def modifica_registru_ajax(request):
     id_registru = request.POST.get('id')
+    logger.info(f"Încercare modificare înregistrare ID: {id_registru} de către user: {request.user.email}")
+    
     registru = get_object_or_404(RegistruJurnal, id=id_registru)
 
     # Verificăm că înregistrarea aparține utilizatorului curent
     if registru.firma != request.user:
+        logger.warning(f"User {request.user.email} a încercat să modifice înregistrare care nu îi aparține: {id_registru}")
         return HttpResponseForbidden("Nu aveți permisiunea de a modifica această înregistrare.")
 
     form = RegistruJurnalForm(request.POST, instance=registru)
 
     if form.is_valid():
         registru = form.save()
+        logger.info(f"Înregistrare {id_registru} modificată cu succes")
         return JsonResponse({
             'success': True,
             'message': 'Înregistrarea a fost modificată cu succes!',
@@ -254,6 +310,7 @@ def modifica_registru_ajax(request):
             }
         })
     else:
+        logger.warning(f"Formular invalid pentru modificare înregistrare {id_registru}: {form.errors}")
         return JsonResponse({'success': False, 'errors': form.errors}, status=400)
     
 # Export registru jurnal CSV si PDF
@@ -261,12 +318,15 @@ def modifica_registru_ajax(request):
 def export_registru(request):
     format_ = request.GET.get('format')
     ids = request.GET.get('ids', '')
+    logger.info(f"Export registru jurnal - Format: {format_}, IDs: {ids} pentru user: {request.user.email}")
 
     if not ids:
+        logger.warning("Export registru - nicio operațiune selectată")
         return HttpResponse("Nicio operațiune selectată.", status=400)
 
     id_list = ids.split(',')
     operatiuni = RegistruJurnal.objects.filter(id__in=id_list, firma=request.user)
+    logger.debug(f"Export {len(operatiuni)} operațiuni")
 
     if format_ == 'csv':
         response = HttpResponse(content_type='text/csv')
@@ -275,42 +335,49 @@ def export_registru(request):
         writer.writerow(['Nr Doc', 'Tip Doc', 'Data', 'Debit', 'Credit', 'Suma', 'Explicatii'])
         for op in operatiuni:
             writer.writerow([op.nrdoc, op.feldoc, op.datadoc.strftime('%Y-%m-%d'), op.debit, op.credit, op.suma, op.explicatii])
+        logger.info("Export CSV completat cu succes")
         return response
 
     elif format_ == 'pdf':
-        buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=A4)
-        styles = getSampleStyleSheet()
-        data = [['Nr Doc', 'Tip Doc', 'Data', 'Debit', 'Credit', 'Suma', 'Explicații']]
-        for op in operatiuni:
-            data.append([
-                op.nrdoc,
-                op.feldoc,
-                op.datadoc.strftime('%Y-%m-%d') if op.datadoc else '',
-                op.debit,
-                op.credit,
-                str(op.suma),
-                op.explicatii or ''
-            ])
+        try:
+            buffer = BytesIO()
+            doc = SimpleDocTemplate(buffer, pagesize=A4)
+            styles = getSampleStyleSheet()
+            data = [['Nr Doc', 'Tip Doc', 'Data', 'Debit', 'Credit', 'Suma', 'Explicații']]
+            for op in operatiuni:
+                data.append([
+                    op.nrdoc,
+                    op.feldoc,
+                    op.datadoc.strftime('%Y-%m-%d') if op.datadoc else '',
+                    op.debit,
+                    op.credit,
+                    str(op.suma),
+                    op.explicatii or ''
+                ])
 
-        table = Table(data)
-        table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.lightblue),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-        ]))
-        doc.build([Paragraph("Registru Jurnal - Export", styles['Title']), table])
-        pdf = buffer.getvalue()
-        buffer.close()
+            table = Table(data)
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.lightblue),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ]))
+            doc.build([Paragraph("Registru Jurnal - Export", styles['Title']), table])
+            pdf = buffer.getvalue()
+            buffer.close()
 
-        response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="operatiuni.pdf"'
-        response.write(pdf)
-        return response
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="operatiuni.pdf"'
+            response.write(pdf)
+            logger.info("Export PDF completat cu succes")
+            return response
+        except Exception as e:
+            logger.error(f"Eroare la generare PDF: {str(e)}")
+            return HttpResponse("Eroare la generare PDF", status=500)
 
     else:
+        logger.warning(f"Format export invalid: {format_}")
         return HttpResponse("Format invalid", status=400)
     
 
@@ -323,11 +390,15 @@ def cont_profit_pierdere(request):
     Generează și închide automat conturile 6 și 7 în contul 121 (Profit și Pierdere)
     pentru firma logată. Returnează JSON response.
     """
+    logger.info(f"Accesat cont profit și pierdere pentru user: {request.user.email}")
+    
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.method == 'POST':
         # Este cerere AJAX sau POST
+        logger.debug("Procesare cerere AJAX/POST pentru cont profit-pierdere")
         return _process_profit_loss_accounts(request)
     else:
         # Este cerere normală GET - afișează template-ul
+        logger.debug("Cerere GET pentru cont profit-pierdere")
         return _render_profit_loss_template(request)
 
 def _process_profit_loss_accounts(request):
@@ -335,6 +406,7 @@ def _process_profit_loss_accounts(request):
     try:
         firma = request.user
         data_inchidere = date.today()
+        logger.info(f"Începere procesare închidere conturi pentru {firma.email} la data {data_inchidere}")
 
         # Luăm toate operațiunile firmei care implică conturi 6 sau 7
         registre = RegistruJurnal.objects.filter(
@@ -353,6 +425,7 @@ def _process_profit_loss_accounts(request):
         operatii_inchidere = []
 
         # --- INCHIDEM CONTURILE DE CHELTUIELI ---
+        logger.debug("Închidere conturi cheltuieli...")
         for cont in conturi_cheltuieli:
             rulaj_debit = sum(
                 op.suma for op in registre.filter(debit=cont.simbol)
@@ -365,6 +438,7 @@ def _process_profit_loss_accounts(request):
                 continue  # cont fără sold
 
             total_cheltuieli += sold
+            logger.debug(f"Cont cheltuieli {cont.simbol} - sold: {sold}")
 
             # Creăm înregistrare de închidere în jurnal
             operatie = RegistruJurnal.objects.create(
@@ -386,6 +460,7 @@ def _process_profit_loss_accounts(request):
             })
 
         # --- INCHIDEM CONTURILE DE VENITURI ---
+        logger.debug("Închidere conturi venituri...")
         for cont in conturi_venituri:
             rulaj_debit = sum(
                 op.suma for op in registre.filter(debit=cont.simbol)
@@ -398,6 +473,7 @@ def _process_profit_loss_accounts(request):
                 continue  # cont fără sold
 
             total_venituri += sold
+            logger.debug(f"Cont venit {cont.simbol} - sold: {sold}")
 
             # Creăm înregistrare de închidere în jurnal
             operatie = RegistruJurnal.objects.create(
@@ -421,6 +497,7 @@ def _process_profit_loss_accounts(request):
         # Calculăm rezultatul final (profit/pierdere)
         rezultat = total_venituri - total_cheltuieli
         tip_rezultat = "PROFIT" if rezultat > 0 else "PIERDERE"
+        logger.info(f"Rezultat final: {tip_rezultat} = {rezultat} (Venituri: {total_venituri}, Cheltuieli: {total_cheltuieli})")
 
         operatii_finale = []
 
@@ -445,6 +522,7 @@ def _process_profit_loss_accounts(request):
                     'suma': float(rezultat),
                     'operatie_id': operatie_finala.id
                 })
+                logger.info(f"Creată operație profit: {rezultat}")
             else:
                 # Pierdere -> Debit 117 (Rezultat reportat) / Credit 121
                 operatie_finala = RegistruJurnal.objects.create(
@@ -464,7 +542,10 @@ def _process_profit_loss_accounts(request):
                     'suma': float(abs(rezultat)),
                     'operatie_id': operatie_finala.id
                 })
+                logger.info(f"Creată operație pierdere: {abs(rezultat)}")
 
+        logger.info(f"Procesare închidere conturi finalizată cu succes. {len(operatii_inchidere)} operații de închidere, {len(operatii_finale)} operații finale")
+        
         return JsonResponse({
             'success': True,
             'message': 'Închiderea conturilor de profit și pierdere a fost efectuată cu succes!',
@@ -481,6 +562,7 @@ def _process_profit_loss_accounts(request):
         })
 
     except Exception as e:
+        logger.error(f"Eroare la procesarea închiderii conturilor: {str(e)}", exc_info=True)
         return JsonResponse({
             'success': False,
             'message': f'A apărut o eroare la procesarea închiderii conturilor: {str(e)}'
@@ -496,21 +578,27 @@ def _render_profit_loss_template(request):
 
 @login_required
 def import_jurnal_csv(request):
+    logger.info(f"Încercare import CSV jurnal pentru user: {request.user.email}")
+    
     if request.method != "POST":
+        logger.warning("Import CSV - metodă invalidă (nu POST)")
         return JsonResponse({"success": False, "message": "Metodă invalidă."})
 
     firma = request.user
 
     if "csv_file" not in request.FILES:
+        logger.warning("Import CSV - niciun fișier selectat")
         return JsonResponse({"success": False, "message": "Nu ai selectat niciun fișier."})
 
     file = request.FILES["csv_file"]
+    logger.info(f"Fișier CSV încărcat: {file.name}, size: {file.size}")
 
     try:
         decoded_file = file.read().decode('utf-8').splitlines()
         reader = csv.DictReader(decoded_file)
         # Curățăm eventuale spații în header
         reader.fieldnames = [f.strip() for f in reader.fieldnames]
+        logger.debug(f"Header CSV: {reader.fieldnames}")
     except Exception as e:
         logger.exception("CSV invalid sau nu poate fi citit")
         return JsonResponse({"success": False, "message": "Fișier CSV invalid."})
@@ -583,6 +671,7 @@ def import_jurnal_csv(request):
                 explicatii=explicatii
             )
             adaugate += 1
+            logger.debug(f"Rând {row_num} importat cu succes")
 
         except Exception as e:
             msg = f"Rând {row_num}: Eroare neașteptată - {str(e)}"
@@ -605,6 +694,7 @@ def import_jurnal_csv(request):
 # Incarcare partial registru jurnal (AJAX)
 @login_required(login_url='login')
 def registru_jurnal_partial(request):
+    logger.debug(f"Încărcare parțială registru jurnal pentru user: {request.user.email}")
     firma = request.user
     form = RegistruJurnalForm()
     registre = RegistruJurnal.objects.filter(firma=firma).order_by('-datadoc')
@@ -618,6 +708,7 @@ def registru_jurnal_partial(request):
 # Balanta
 @login_required(login_url="/login/")
 def dashboard_firma_balanta(request):
+    logger.info(f"Accesat balanță pentru user: {request.user.email}")
     firma = request.user
 
     # 1. Obținem toate rulajele într-o singură interogare
@@ -680,6 +771,8 @@ def dashboard_firma_balanta(request):
         .aggregate(t=Sum("suma"))["t"] or 0
     )
 
+    logger.debug(f"Balanță generată: {len(raport_final)} conturi cu mișcare")
+    
     return render(request, "main/dashboard_firma_balanta.html", {
         "firma": firma,
         "raport_final": raport_final,
@@ -693,6 +786,7 @@ def dashboard_firma_balanta(request):
 def export_balanta(request):
     format_ = request.GET.get('format', 'csv')
     firma = request.user
+    logger.info(f"Export balanță - Format: {format_} pentru user: {firma.email}")
 
     # Preluăm datele pentru balanță
     registre = RegistruJurnal.objects.filter(firma=firma).order_by('datadoc', 'nrdoc')
@@ -736,36 +830,43 @@ def export_balanta(request):
         for row in date_balanta:
             writer.writerow(row)
 
+        logger.info("Export balanță CSV completat")
         return response
 
     elif format_ == 'pdf':
-        buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=A4)
-        styles = getSampleStyleSheet()
+        try:
+            buffer = BytesIO()
+            doc = SimpleDocTemplate(buffer, pagesize=A4)
+            styles = getSampleStyleSheet()
 
-        # Tabel
-        data = [['Simbol', 'Denumire', 'Tip', 'Rulaj Debit', 'Rulaj Credit', 'Sold Debit', 'Sold Credit']]
-        data.extend(date_balanta)
+            # Tabel
+            data = [['Simbol', 'Denumire', 'Tip', 'Rulaj Debit', 'Rulaj Credit', 'Sold Debit', 'Sold Credit']]
+            data.extend(date_balanta)
 
-        table = Table(data)
-        table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.lightblue),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-        ]))
+            table = Table(data)
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.lightblue),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ]))
 
-        doc.build([Paragraph("Balanță - Export", styles['Title']), table])
-        pdf = buffer.getvalue()
-        buffer.close()
+            doc.build([Paragraph("Balanță - Export", styles['Title']), table])
+            pdf = buffer.getvalue()
+            buffer.close()
 
-        response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="balanta.pdf"'
-        response.write(pdf)
-        return response
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="balanta.pdf"'
+            response.write(pdf)
+            logger.info("Export balanță PDF completat")
+            return response
+        except Exception as e:
+            logger.error(f"Eroare la generare PDF balanță: {str(e)}")
+            return HttpResponse("Eroare la generare PDF", status=500)
 
     else:
+        logger.warning(f"Format export balanță invalid: {format_}")
         return HttpResponse("Format invalid", status=400)
 
 
@@ -774,6 +875,7 @@ def export_balanta(request):
 
 @login_required(login_url='/login/')
 def dashboard_firma_fisa_cont(request):
+    logger.info(f"Accesat fișă cont pentru user: {request.user.email}")
     firma = request.user
 
     # Luăm toate simbolurile de cont folosite de firmă
@@ -784,6 +886,8 @@ def dashboard_firma_fisa_cont(request):
 
     # Luăm doar conturile existente în PlanConturi
     conturi_folosite = PlanConturi.objects.filter(simbol__in=simboluri_folosite).order_by('simbol')
+
+    logger.debug(f"Fișă cont - {len(conturi_folosite)} conturi folosite")
 
     return render(request, 'main/dashboard_firma_fisa_cont.html', {
         'firma': firma,
@@ -797,6 +901,7 @@ def fisa_cont_ajax(request, cont_simbol):
     """
     Generează fișa de cont pentru un cont specific (AJAX)
     """
+    logger.info(f"Cerere fișă cont AJAX pentru cont {cont_simbol} - user: {request.user.email}")
     firma = request.user
     
     # Verificăm că contul există și a fost folosit de firma conectată
@@ -862,6 +967,8 @@ def fisa_cont_ajax(request, cont_simbol):
             'sold_debit': sold_d,
             'sold_credit': sold_c
         })
+    
+    logger.debug(f"Fișă cont {cont_simbol} generată: {len(registre)} operații")
     
     return render(request, 'main/fisa_cont_partial.html', {
         'cont': cont,
@@ -1455,6 +1562,7 @@ def dashboard_firma_statistici(request):
     """
     Dashboard statistici financiare cu analize complexe și modelul Altman Z-Score
     """
+    logger.info(f"Accesat statistici pentru user: {request.user.email}")
     firma = request.user
     
     try:
@@ -1462,6 +1570,7 @@ def dashboard_firma_statistici(request):
         registre = RegistruJurnal.objects.filter(firma=firma).order_by('datadoc')
         
         if not registre.exists():
+            logger.warning("Statistici - nicio înregistrare găsită")
             return render(request, 'main/dashboard_firma_statistici.html', {
                 'firma': firma,
                 'eroare': 'Nu există date pentru analiză statistică'
@@ -1482,6 +1591,8 @@ def dashboard_firma_statistici(request):
         # Analiza trendurilor
         analiza_trend = analizeaza_trendurile(df)
         
+        logger.info(f"Statistici generate cu succes: {len(df)} înregistrări analizate")
+        
         context = {
             'firma': firma,
             'indicatori': indicatori,
@@ -1493,7 +1604,7 @@ def dashboard_firma_statistici(request):
         }
         
     except Exception as e:
-        logger.error(f"Eroare la generarea statisticilor: {str(e)}")
+        logger.error(f"Eroare la generarea statisticilor: {str(e)}", exc_info=True)
         context = {
             'firma': firma,
             'eroare': f'A apărut o eroare la generarea statisticilor: {str(e)}'
@@ -1505,6 +1616,7 @@ def creaza_dataframe_registre(registre):
     """
     Creează un DataFrame pandas din registrele jurnal
     """
+    logger.debug("Creare DataFrame din registre")
     data = []
     
     for registru in registre:
@@ -1539,6 +1651,7 @@ def creaza_dataframe_registre(registre):
         df['trimestru'] = df['data'].dt.quarter
         df['zi_saptamana'] = df['data'].dt.day_name()
     
+    logger.debug(f"DataFrame creat: {len(df)} rânduri")
     return df
 
 def get_categorie_cont(debit, credit):
@@ -1568,6 +1681,7 @@ def calculeaza_indicatorii_financiari(df):
     """
     Calculează indicatorii financiari principali
     """
+    logger.debug("Calcul indicatori financiari")
     indicatori = {}
     
     # Venituri și cheltuieli totale
@@ -1601,13 +1715,14 @@ def calculeaza_indicatorii_financiari(df):
     
     indicatori['tranzactii_lunare'] = tranzactii_lunare.to_dict() if not tranzactii_lunare.empty else {}
     
+    logger.debug(f"Indicatori calculați: Venituri={venituri}, Profit={profit_net}")
     return indicatori
 
 def calculeaza_altman_zscore(indicatori, df):
     """
     Calculează modelul Altman Z-Score pentru evaluarea riscului de faliment
-    Versiune adaptată pentru IMM-uri
     """
+    logger.debug("Calcul Altman Z-Score")
     try:
         # Extragem datele necesare pentru calcul
         capital_angajat = indicatori.get('categorii', {}).get('capital', 1)
@@ -1653,6 +1768,8 @@ def calculeaza_altman_zscore(indicatori, df):
             interpretare = "Firma prezintă semne de dificultate financiară. Riscul de faliment este ridicat."
             culoare = "danger"
         
+        logger.info(f"Altman Z-Score calculat: {Z:.3f} - {situatie}")
+        
         return {
             'z_score': round(Z, 3),
             'situatie': situatie,
@@ -1681,6 +1798,7 @@ def genereaza_grafice_statistice(df, indicatori, altman_result):
     """
     Generează graficele statistice în format base64
     """
+    logger.debug("Generare grafice statistice")
     grafice = {}
     
     try:
@@ -1798,8 +1916,10 @@ def genereaza_grafice_statistice(df, indicatori, altman_result):
         grafice['indicatori_principali'] = base64.b64encode(image_png).decode('utf-8')
         plt.close()
         
+        logger.debug("Grafice generate cu succes")
+        
     except Exception as e:
-        logger.error(f"Eroare la generarea graficelor: {str(e)}")
+        logger.error(f"Eroare la generarea graficelor: {str(e)}", exc_info=True)
         grafice['eroare'] = f"Nu s-au putut genera graficele: {str(e)}"
     
     return grafice
@@ -1808,6 +1928,7 @@ def analizeaza_trendurile(df):
     """
     Realizează analiza trendurilor din date
     """
+    logger.debug("Analiză trenduri")
     analiza = {}
     
     try:
@@ -1840,6 +1961,8 @@ def analizeaza_trendurile(df):
         top_5_tranzactii = df.nlargest(5, 'suma')[['data', 'suma', 'explicatii']]
         analiza['tranzactii_mari'] = top_5_tranzactii.to_dict('records')
         
+        logger.debug("Analiză trenduri completată")
+        
     except Exception as e:
         logger.error(f"Eroare la analiza trendurilor: {str(e)}")
     
@@ -1850,6 +1973,7 @@ def export_statistici_csv(request):
     """
     Exportă statisticile în format CSV
     """
+    logger.info(f"Export statistici CSV pentru user: {request.user.email}")
     firma = request.user
     
     try:
@@ -1875,9 +1999,11 @@ def export_statistici_csv(request):
         for categorie, suma in indicatori.get('categorii', {}).items():
             writer.writerow([categorie, suma])
         
+        logger.info("Export statistici CSV completat")
         return response
         
     except Exception as e:
+        logger.error(f"Eroare la export statistici: {str(e)}")
         messages.error(request, f"Eroare la export: {str(e)}")
         return redirect('dashboard_firma_statistici')
 
@@ -1886,16 +2012,20 @@ def export_statistici_csv(request):
 # Pagina admin-dashboard + bara cautare firma dupa denumire
 @login_required(login_url='admin_login')
 def admin_dashboard(request):
+    logger.info(f"Accesat admin dashboard de către: {request.user.username}")
     if not request.user.is_superuser:
+        logger.warning(f"Acces neautorizat la admin dashboard de către: {request.user.username}")
         raise PermissionDenied
 
     query = request.GET.get('q', '')
     firme = []
 
     if query:
+        logger.debug(f"Căutare firme cu query: {query}")
         firme = Firma.objects.filter(
             Q(denumire__icontains=query)
         )
+        logger.debug(f"Găsite {len(firme)} firme pentru query: {query}")
 
     return render(request, 'main/admin_dashboard.html', {
         'query': query,
@@ -1904,7 +2034,9 @@ def admin_dashboard(request):
 
 # Login superuser
 def admin_login_view(request):
+    logger.info("Accesat pagina admin login")
     if request.user.is_authenticated and request.user.is_superuser:
+        logger.debug("User deja autentificat ca admin, redirecționare la dashboard")
         return redirect('admin_dashboard')
 
     mesaj = None
@@ -1913,11 +2045,13 @@ def admin_login_view(request):
     if request.method == "POST":
         username = request.POST.get("username")
         parola = request.POST.get("password")
+        logger.debug(f"Încercare autentificare admin pentru: {username}")
 
         user = authenticate(request, username=username, password=parola)
 
         if user is not None and user.is_superuser:
             login(request, user)
+            logger.info(f"Admin autentificat cu succes: {username}")
             messages.success(request, "Autentificare reușită!")
             # dacă există next, redirecționează acolo
             if request.POST.get('next'):
@@ -1927,6 +2061,7 @@ def admin_login_view(request):
             else:
                 return redirect("admin_dashboard")
         else:
+            logger.warning(f"Autentificare admin eșuată pentru: {username}")
             mesaj = "Username sau parola incorectă!"
             messages.error(request, "Autentificare eșuată!")
 
@@ -1936,17 +2071,22 @@ def admin_login_view(request):
 # Introducere firma in baza de date
 @login_required
 def inregistrare_firma(request):
+    logger.info(f"Accesat înregistrare firmă de către admin: {request.user.username}")
     if not request.user.is_superuser:
+        logger.warning(f"Acces neautorizat la înregistrare firmă de către: {request.user.username}")
         raise PermissionDenied
 
     form = InregistrareFirmaForm()
     if request.method == "POST":
+        logger.debug("Procesare formular înregistrare firmă POST")
         form = InregistrareFirmaForm(request.POST)
         if form.is_valid():
-            form.save()
+            firma = form.save()
+            logger.info(f"Firmă înregistrată cu succes: {firma.denumire} (ID: {firma.id})")
             messages.success(request, "Firma a fost înregistrată cu succes!")
             return redirect('admin_dashboard')
         else:
+            logger.warning(f"Formular înregistrare firmă invalid: {form.errors}")
             messages.error(request, "Corectează erorile din formular!")
             
     
@@ -1955,16 +2095,19 @@ def inregistrare_firma(request):
 #  Afisare firme si detalii
 @login_required
 def afisare_firme(request):
+    logger.info(f"Accesat afișare firme de către admin: {request.user.username}")
     if not request.user.is_superuser:
         raise PermissionDenied
 
     firme = Firma.objects.all()
+    logger.debug(f"Afișare {len(firme)} firme")
     return render(request,'main/afisare_firme.html',{'firme':firme})
 
 # Trimitere la un dashboard pentru o anumita firma
 # Incarcare formular schimbare date 
 @login_required
 def admin_dashboard_firma(request, firma_id):
+    logger.info(f"Accesat dashboard firmă {firma_id} de către admin: {request.user.username}")
     if not request.user.is_superuser:
         raise PermissionDenied
 
@@ -1973,9 +2116,11 @@ def admin_dashboard_firma(request, firma_id):
 
     if request.method == 'POST' and form.is_valid():
         form.save()
+        logger.info(f"Firmă {firma_id} modificată cu succes de către admin: {request.user.username}")
         messages.success(request, f"Firma '{firma.denumire}' a fost modificată cu succes!")
         return redirect('admin_dashboard_firma', firma_id=firma.id)
     elif request.method == 'POST':
+        logger.warning(f"Formular modificare firmă invalid: {form.errors}")
         messages.error(request, "Formularul conține erori, te rugăm să corectezi datele.")
 
     return render(request, 'main/admin_dashboard_firma.html', {'firma': firma, 'form': form})
@@ -1985,20 +2130,25 @@ def admin_dashboard_firma(request, firma_id):
 # Stergere firma  
 @login_required
 def sterge_firma(request, firma_id):
+    logger.info(f"Încercare ștergere firmă {firma_id} de către admin: {request.user.username}")
     if not request.user.is_superuser:
         raise PermissionDenied
 
     firma = get_object_or_404(Firma, id=firma_id)
 
     if request.method == 'POST':
+        nume_firma = firma.denumire
         firma.delete()
-        messages.success(request, f"Firma '{firma.denumire}' a fost ștearsă cu succes!")
+        logger.info(f"Firmă {firma_id} ('{nume_firma}') ștearsă cu succes de către admin: {request.user.username}")
+        messages.success(request, f"Firma '{nume_firma}' a fost ștearsă cu succes!")
         return redirect('afisare_firme')  # redirect la lista firmelor
 
 
 
 # Logout pentru ADMIN
 def custom_logout_admin(request):
+    username = request.user.username if request.user.is_authenticated else "Necunoscut"
+    logger.info(f"Logout admin: {username}")
     logout(request)
     messages.info(request, "Te-ai delogat cu succes din panoul de administrare!")
     return redirect('admin_login')
@@ -2006,6 +2156,8 @@ def custom_logout_admin(request):
 
 # Logout pentru utilizator (firmă)
 def custom_logout(request):
+    email = request.user.email if request.user.is_authenticated else "Necunoscut"
+    logger.info(f"Logout user: {email}")
     logout(request)
     messages.info(request, "Te-ai delogat cu succes din contul firmei!")
     return redirect('login')
