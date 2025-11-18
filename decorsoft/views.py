@@ -16,7 +16,7 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from django.db.models import Q
-from datetime import date, datetime
+from datetime import date
 from decimal import Decimal
 from dateutil import parser
 import logging
@@ -191,7 +191,7 @@ def sterge_registru_ajax(request):
     if registru.firma != request.user:
         return HttpResponseForbidden("Nu aveți permisiunea de a șterge această înregistrare.")
 
-    # 🔥 Șterge automat toate operațiunile TVA copil
+    # Șterge automat toate operațiunile TVA copil
     registru.tva_children.all().delete()
 
     # Șterge înregistrarea principală
