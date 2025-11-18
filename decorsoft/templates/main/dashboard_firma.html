@@ -475,7 +475,7 @@
             <div class="nav-section">
                 <div class="nav-title">RAPOARTE</div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="{% url 'dashboard_firma_statistici' %}" class="nav-link">
                         <i class="fas fa-chart-line"></i>
                         <span>Statistici</span>
                     </a>
@@ -515,21 +515,22 @@
             <!-- Quick Stats -->
             <div class="quick-stats">
                 <div class="stat-item">
-                    <div class="stat-number">24</div>
-                    <div class="stat-label">Facturi Luna Curentă</div>
+                    <div class="stat-number">{{ nr_facturi }}</div>
+                    <div class="stat-label">Documente în registru</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-number">₡12,458</div>
+                    <div class="stat-number">{{ venit_total }} RON</div>
                     <div class="stat-label">Venit Total</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-number">₡8,230</div>
+                    <div class="stat-number">{{ cheltuieli_total }} RON</div>
                     <div class="stat-label">Cheltuieli</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-number">₡4,228</div>
+                    <div class="stat-number">{{ profit_net }} RON</div>
                     <div class="stat-label">Profit Net</div>
                 </div>
+
             </div>
         </div>
     </div>

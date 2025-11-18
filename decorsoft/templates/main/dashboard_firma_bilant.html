@@ -633,19 +633,19 @@
         <!-- Statistici generale -->
         <div class="stats-bar">
             <div class="stat-card">
-                <div class="stat-number">₡{{ total_active|default:0|floatformat:2 }}</div>
+                <div class="stat-number">{{ total_active|default:0|floatformat:2 }} RON</div>
                 <div class="stat-label">Total Active</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">₡{{ total_pasive|default:0|floatformat:2 }}</div>
+                <div class="stat-number">{{ total_pasive|default:0|floatformat:2 }} RON</div>
                 <div class="stat-label">Total Pasive</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">₡{{ bilant.rd_04|default:0|floatformat:2 }}</div>
+                <div class="stat-number">{{ bilant.rd_04|default:0|floatformat:2 }} RON</div>
                 <div class="stat-label">Active Imobilizate</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">₡{{ bilant.rd_09|default:0|floatformat:2 }}</div>
+                <div class="stat-number">{{ bilant.rd_09|default:0|floatformat:2 }} RON</div>
                 <div class="stat-label">Active Circulante</div>
             </div>
         </div>
@@ -667,10 +667,10 @@
                 {% endif %}
             </h3>
             <p class="balance-details">
-                Active: ₡{{ total_active|default:0|floatformat:2 }} | 
-                Pasive: ₡{{ total_pasive|default:0|floatformat:2 }}
+                Active: {{ total_active|default:0|floatformat:2 }} RON | 
+                Pasive: {{ total_pasive|default:0|floatformat:2 }} RON
                 {% if not bilant_echilibrat %}
-                    | Diferență: ₡{{ diferenta|default:0|floatformat:2 }}
+                    | Diferență: {{ diferenta|default:0|floatformat:2 }} RON
                 {% endif %}
             </p>
         </div>
@@ -686,80 +686,80 @@
                     <!-- Active imobilizate -->
                     <div class="bilant-row">
                         <div class="bilant-label">A. ACTIVE IMOBILIZATE</div>
-                        <div class="bilant-value">₡{{ bilant.rd_04|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_04|default:0|floatformat:2 }} RON</div>
                     </div>
                     
                     <div class="bilant-row bilant-indent">
                         <div class="bilant-label">I. Imobilizări necorporale</div>
-                        <div class="bilant-value">₡{{ bilant.rd_01|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_01|default:0|floatformat:2 }} RON</div>
                     </div>
                     
                     <div class="bilant-row bilant-indent">
                         <div class="bilant-label">II. Imobilizări corporale</div>
-                        <div class="bilant-value">₡{{ bilant.rd_02|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_02|default:0|floatformat:2 }} RON</div>
                     </div>
                     
                     <div class="bilant-row bilant-indent">
                         <div class="bilant-label">III. Imobilizări financiare</div>
-                        <div class="bilant-value">₡{{ bilant.rd_03|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_03|default:0|floatformat:2 }} RON</div>
                     </div>
 
                     <!-- Active circulante -->
                     <div class="bilant-row total">
                         <div class="bilant-label">B. ACTIVE CIRCULANTE</div>
-                        <div class="bilant-value">₡{{ bilant.rd_09|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_09|default:0|floatformat:2 }} RON</div>
                     </div>
                     
                     <div class="bilant-row bilant-indent">
                         <div class="bilant-label">I. Stocuri</div>
-                        <div class="bilant-value">₡{{ bilant.rd_05|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_05|default:0|floatformat:2 }} RON</div>
                     </div>
                     
                     <div class="bilant-row bilant-indent">
                         <div class="bilant-label">II. Creanțe</div>
-                        <div class="bilant-value">₡{{ bilant.rd_06|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_06|default:0|floatformat:2 }} RON</div>
                     </div>
                     
                     <div class="bilant-row bilant-indent-2">
                         <div class="bilant-label">a) Clients și alte creanțe</div>
-                        <div class="bilant-value">₡{{ bilant.rd_06a|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_06a|default:0|floatformat:2 }} RON</div>
                     </div>
                     
                     <div class="bilant-row bilant-indent-2">
                         <div class="bilant-label">b) Debitori diverși</div>
-                        <div class="bilant-value">₡{{ bilant.rd_06b|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_06b|default:0|floatformat:2 }} RON</div>
                     </div>
                     
                     <div class="bilant-row bilant-indent">
                         <div class="bilant-label">III. Investiții pe termen scurt</div>
-                        <div class="bilant-value">₡{{ bilant.rd_07|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_07|default:0|floatformat:2 }} RON</div>
                     </div>
                     
                     <div class="bilant-row bilant-indent">
                         <div class="bilant-label">IV. Casa și conturi la bănci</div>
-                        <div class="bilant-value">₡{{ bilant.rd_08|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_08|default:0|floatformat:2 }} RON</div>
                     </div>
 
                     <!-- Cheltuieli în avans -->
                     <div class="bilant-row">
                         <div class="bilant-label">C. CHELTUIELI ÎN AVANS</div>
-                        <div class="bilant-value">₡{{ bilant.rd_10|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_10|default:0|floatformat:2 }} RON</div>
                     </div>
                     
                     <div class="bilant-row bilant-indent">
                         <div class="bilant-label">- până la 1 an</div>
-                        <div class="bilant-value">₡{{ bilant.rd_11|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_11|default:0|floatformat:2 }} RON</div>
                     </div>
                     
                     <div class="bilant-row bilant-indent">
                         <div class="bilant-label">- peste 1 an</div>
-                        <div class="bilant-value">₡{{ bilant.rd_12|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_12|default:0|floatformat:2 }} RON</div>
                     </div>
 
                     <!-- Total active -->
                     <div class="bilant-row total">
                         <div class="bilant-label">TOTAL ACTIVE</div>
-                        <div class="bilant-value">₡{{ total_active|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ total_active|default:0|floatformat:2 }} RON</div>
                     </div>
                 </div>
             </div>
@@ -773,100 +773,100 @@
                     <!-- Datorii -->
                     <div class="bilant-row">
                         <div class="bilant-label">D. DATORII</div>
-                        <div class="bilant-value">₡{{ bilant.rd_13|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_13|default:0|floatformat:2 }} RON</div>
                     </div>
 
                     <!-- Provizioane -->
                     <div class="bilant-row">
                         <div class="bilant-label">E. PROVIZIOANE</div>
-                        <div class="bilant-value">₡{{ bilant.rd_18|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value"> {{ bilant.rd_18|default:0|floatformat:2 }} RON</div>
                     </div>
                     
                     <div class="bilant-row bilant-indent">
                         <div class="bilant-label">- pentru riscuri și cheltuieli</div>
-                        <div class="bilant-value">₡{{ bilant.rd_19|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_19|default:0|floatformat:2 }} RON</div>
                     </div>
                     
                     <div class="bilant-row bilant-indent-2">
                         <div class="bilant-label">• până la 1 an</div>
-                        <div class="bilant-value">₡{{ bilant.rd_20|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_20|default:0|floatformat:2 }} RON</div>
                     </div>
                     
                     <div class="bilant-row bilant-indent-2">
                         <div class="bilant-label">• peste 1 an</div>
-                        <div class="bilant-value">₡{{ bilant.rd_21|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_21|default:0|floatformat:2 }} RON</div>
                     </div>
                     
                     <div class="bilant-row bilant-indent">
                         <div class="bilant-label">- pentru impozitul amânat</div>
-                        <div class="bilant-value">₡{{ bilant.rd_22|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_22|default:0|floatformat:2 }} RON</div>
                     </div>
                     
                     <div class="bilant-row bilant-indent-2">
                         <div class="bilant-label">• până la 1 an</div>
-                        <div class="bilant-value">₡{{ bilant.rd_23|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_23|default:0|floatformat:2 }} RON</div>
                     </div>
                     
                     <div class="bilant-row bilant-indent-2">
                         <div class="bilant-label">• peste 1 an</div>
-                        <div class="bilant-value">₡{{ bilant.rd_24|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_24|default:0|floatformat:2 }} RON</div>
                     </div>
                     
                     <div class="bilant-row bilant-indent">
                         <div class="bilant-label">- alte provizioane</div>
-                        <div class="bilant-value">₡{{ bilant.rd_25|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_25|default:0|floatformat:2 }} RON</div>
                     </div>
                     
                     <div class="bilant-row bilant-indent-2">
                         <div class="bilant-label">• până la 1 an</div>
-                        <div class="bilant-value">₡{{ bilant.rd_26|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_26|default:0|floatformat:2 }} RON</div>
                     </div>
                     
                     <div class="bilant-row bilant-indent-2">
                         <div class="bilant-label">• peste 1 an</div>
-                        <div class="bilant-value">₡{{ bilant.rd_27|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_27|default:0|floatformat:2 }} RON</div>
                     </div>
 
                     <!-- Capital și rezerve -->
                     <div class="bilant-row total">
                         <div class="bilant-label">F. CAPITALURI PROPRII</div>
-                        <div class="bilant-value">₡{{ bilant.rd_49|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_49|default:0|floatformat:2 }} RON</div>
                     </div>
                     
                     <div class="bilant-row bilant-indent">
                         <div class="bilant-label">Capital subscris vărsat</div>
-                        <div class="bilant-value">₡{{ bilant.rd_29|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_29|default:0|floatformat:2 }} RON</div>
                     </div>
                     
                     <div class="bilant-row bilant-indent">
                         <div class="bilant-label">Prime de capital</div>
-                        <div class="bilant-value">₡{{ bilant.rd_31|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_31|default:0|floatformat:2 }} RON</div>
                     </div>
                     
                     <div class="bilant-row bilant-indent">
                         <div class="bilant-label">Rezerve din reevaluare</div>
-                        <div class="bilant-value">₡{{ bilant.rd_33|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_33|default:0|floatformat:2 }} RON</div>
                     </div>
                     
                     <div class="bilant-row bilant-indent">
                         <div class="bilant-label">Rezerve</div>
-                        <div class="bilant-value">₡{{ bilant.rd_36|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_36|default:0|floatformat:2 }} RON</div>
                     </div>
                     
                     <div class="bilant-row bilant-indent">
                         <div class="bilant-label">Rezultat reportat</div>
-                        <div class="bilant-value">₡{{ bilant.rd_37|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_37|default:0|floatformat:2 }} RON</div>
                     </div>
                     
                     <div class="bilant-row bilant-indent">
                         <div class="bilant-label">Rezultatul exercițiului</div>
-                        <div class="bilant-value">₡{{ bilant.rd_48|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ bilant.rd_48|default:0|floatformat:2 }} RON</div>
                     </div>
 
                     <!-- Total pasive -->
                     <div class="bilant-row total">
                         <div class="bilant-label">TOTAL PASIVE</div>
-                        <div class="bilant-value">₡{{ total_pasive|default:0|floatformat:2 }}</div>
+                        <div class="bilant-value">{{ total_pasive|default:0|floatformat:2 }} RON</div>
                     </div>
                 </div>
             </div>

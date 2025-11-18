@@ -1271,11 +1271,11 @@
                 <div class="stat-label">Total Operațiuni</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">₡{{ total_debit }}</div>
+                <div class="stat-number">{{ total_debit }} RON</div>
                 <div class="stat-label">Total Debit</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">₡{{ total_credit }}</div>
+                <div class="stat-number">{{ total_credit }} RON</div>
                 <div class="stat-label">Total Credit</div>
             </div>
         </div>
@@ -1329,7 +1329,7 @@
                         <td class="date-cell">{{ registru.datadoc|date:"d.m.Y" }}</td>
                         <td class="amount-cell debit-amount">{{ registru.debit }}</td>
                         <td class="amount-cell credit-amount">{{ registru.credit }}</td>
-                        <td class="suma-cell">₡{{ registru.suma }}</td>
+                        <td class="suma-cell">{{ registru.suma }} RON </td>
                         <td class="explicatii-cell">{{ registru.explicatii }}</td>
                         <td class="actions-cell">
                             <div class="action-buttons">
@@ -1788,15 +1788,15 @@
                 // Afișează statisticile
                 resultStats.innerHTML = `
                     <div class="result-stat">
-                        <div class="result-stat-value">₡${resultData.total_cheltuieli.toFixed(2)}</div>
+                        <div class="result-stat-value">${resultData.total_cheltuieli.toFixed(2)} RON</div>
                         <div class="result-stat-label">Total Cheltuieli</div>
                     </div>
                     <div class="result-stat">
-                        <div class="result-stat-value">₡${resultData.total_venituri.toFixed(2)}</div>
+                        <div class="result-stat-value">${resultData.total_venituri.toFixed(2)} RON </div>
                         <div class="result-stat-label">Total Venituri</div>
                     </div>
                     <div class="result-stat">
-                        <div class="result-stat-value">₡${resultData.rezultat.toFixed(2)}</div>
+                        <div class="result-stat-value">${resultData.rezultat.toFixed(2)} RON</div>
                         <div class="result-stat-label">${resultData.tip_rezultat}</div>
                     </div>
                     <div class="result-stat">
@@ -1815,7 +1815,7 @@
                         <div class="operation-item ${typeClass}">
                             <strong>${op.cont} - ${op.denumire}</strong><br>
                             Tip: ${op.tip === 'cheltuieli' ? 'Cheltuieli' : 'Venituri'} | 
-                            Suma: ₡${op.suma.toFixed(2)}
+                            Suma: ${op.suma.toFixed(2)} RON
                         </div>
                     `;
                 });
@@ -1826,7 +1826,7 @@
                         <div class="operation-item final">
                             <strong>Operație finală (${op.tip})</strong><br>
                             Debit: ${op.debit} | Credit: ${op.credit} | 
-                            Suma: ₡${op.suma.toFixed(2)}
+                            Suma: ${op.suma.toFixed(2)} RON
                         </div>
                     `;
                 });
@@ -1989,7 +1989,7 @@
                 $('#debit').val(currentDebit).trigger('change');
                 $('#credit').val(currentCredit).trigger('change');
                 
-                document.getElementById('suma').value = row.cells[6].textContent.replace('₡', '').trim();
+                document.getElementById('suma').value = row.cells[6].textContent.replace(' RON', '').trim();
                 document.getElementById('explicatii').value = row.cells[7].textContent;
 
                 // Verifică alertele și TVA
@@ -2247,7 +2247,7 @@
                     <td class="date-cell">${formatDate(registruData.datadoc)}</td>
                     <td class="amount-cell debit-amount">${registruData.debit}</td>
                     <td class="amount-cell credit-amount">${registruData.credit}</td>
-                    <td class="suma-cell">₡${registruData.suma}</td>
+                    <td class="suma-cell">${registruData.suma} RON</td>
                     <td class="explicatii-cell">${registruData.explicatii || ''}</td>
                     <td class="actions-cell">
                         <div class="action-buttons">
@@ -2277,7 +2277,7 @@
                         <td class="date-cell">${formatDate(registruData.datadoc)}</td>
                         <td class="amount-cell debit-amount">${registruData.debit}</td>
                         <td class="amount-cell credit-amount">${registruData.credit}</td>
-                        <td class="suma-cell">₡${registruData.suma}</td>
+                        <td class="suma-cell">${registruData.suma} RON</td>
                         <td class="explicatii-cell">${registruData.explicatii || ''}</td>
                         <td class="actions-cell">
                             <div class="action-buttons">

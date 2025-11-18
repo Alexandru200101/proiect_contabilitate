@@ -15,18 +15,23 @@ from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
-from django.db.models import Q
 from datetime import date
 from decimal import Decimal
 from dateutil import parser
 import logging
+import numpy as np
+import pandas as pd
+import matplotlib
+matplotlib.use('Agg')  # Pentru a evita problemele cu GUI
+import matplotlib.pyplot as plt
+import seaborn as sns
+import base64
+from django.db.models import Q
+
 
 
 logger = logging.getLogger(__name__)
 TVA_IMPLICIT = Decimal('0.21')
-
-
-
 
 
 # Pagina principală
@@ -82,7 +87,24 @@ def login_view(request):
 # Dashboard firmă
 @login_required(login_url='/login/')
 def dashboard_firma(request):
-    return render(request, 'main/dashboard_firma.html', {'firma': request.user})
+    firma = request.user
+    registre = RegistruJurnal.objects.filter(firma=firma)
+
+    # Filtrare venituri și cheltuieli după cont
+    venituri = registre.filter(credit__startswith='7').aggregate(total=Sum('suma'))['total'] or 0
+    cheltuieli = registre.filter(debit__startswith='6').aggregate(total=Sum('suma'))['total'] or 0
+
+    profit_net = venituri - cheltuieli
+
+    context = {
+        'nr_facturi': registre.count(),
+        'venit_total': venituri,
+        'cheltuieli_total': cheltuieli,
+        'profit_net': profit_net,
+        'registre': registre,
+    }
+
+    return render(request, 'main/dashboard_firma.html', context)
 
 
 # Dashboard registru jurnal + interogare baza de date
@@ -103,7 +125,7 @@ def dashboard_firma_jurnal(request):
         'conturi': conturi
     })
 
-# Formular adaugare operatiune
+# Formular adaugare operatiune + tva automat
 @login_required(login_url='login')
 @require_POST
 def adauga_registru_ajax(request):
@@ -202,7 +224,7 @@ def sterge_registru_ajax(request):
         'message': f"Înregistrarea {id_registru} și TVA-ul aferent au fost șterse!"
     })
 
-# modificare inregistrare AJAX
+# Modificare inregistrare AJAX
 @login_required(login_url='login')
 @require_POST
 def modifica_registru_ajax(request):
@@ -665,6 +687,8 @@ def dashboard_firma_balanta(request):
         "total_general_credit": total_general,
     })
 
+
+# Export balanta CSV si PDF
 @login_required(login_url='login')
 def export_balanta(request):
     format_ = request.GET.get('format', 'csv')
@@ -767,7 +791,7 @@ def dashboard_firma_fisa_cont(request):
     })
 
 
-
+# Incarcare partial fisa cont (AJAX)
 @login_required(login_url='/login/')
 def fisa_cont_ajax(request, cont_simbol):
     """
@@ -1426,6 +1450,437 @@ def export_bilant(request):
         return HttpResponse("Format invalid", status=400)
 
 
+@login_required(login_url='login')
+def dashboard_firma_statistici(request):
+    """
+    Dashboard statistici financiare cu analize complexe și modelul Altman Z-Score
+    """
+    firma = request.user
+    
+    try:
+        # Obținem datele din registrul jurnal
+        registre = RegistruJurnal.objects.filter(firma=firma).order_by('datadoc')
+        
+        if not registre.exists():
+            return render(request, 'main/dashboard_firma_statistici.html', {
+                'firma': firma,
+                'eroare': 'Nu există date pentru analiză statistică'
+            })
+        
+        # Creăm DataFrame pentru analize
+        df = creaza_dataframe_registre(registre)
+        
+        # Calculăm indicatorii financiari
+        indicatori = calculeaza_indicatorii_financiari(df)
+        
+        # Calculăm Altman Z-Score
+        altman_result = calculeaza_altman_zscore(indicatori, df)
+        
+        # Generăm graficele
+        grafice = genereaza_grafice_statistice(df, indicatori, altman_result)
+        
+        # Analiza trendurilor
+        analiza_trend = analizeaza_trendurile(df)
+        
+        context = {
+            'firma': firma,
+            'indicatori': indicatori,
+            'altman': altman_result,
+            'grafice': grafice,
+            'analiza_trend': analiza_trend,
+            'total_inregistrari': len(df),
+            'perioada_analiza': f"{df['data'].min().strftime('%d.%m.%Y')} - {df['data'].max().strftime('%d.%m.%Y')}"
+        }
+        
+    except Exception as e:
+        logger.error(f"Eroare la generarea statisticilor: {str(e)}")
+        context = {
+            'firma': firma,
+            'eroare': f'A apărut o eroare la generarea statisticilor: {str(e)}'
+        }
+    
+    return render(request, 'main/dashboard_firma_statistici.html', context)
+
+def creaza_dataframe_registre(registre):
+    """
+    Creează un DataFrame pandas din registrele jurnal
+    """
+    data = []
+    
+    for registru in registre:
+        # Determinăm tipul operațiunii
+        tip_operatie = 'neutru'
+        if registru.debit.startswith('6'):
+            tip_operatie = 'cheltuiala'
+        elif registru.credit.startswith('7'):
+            tip_operatie = 'venit'
+        elif registru.debit.startswith('2') or registru.debit.startswith('3'):
+            tip_operatie = 'activ'
+        elif registru.credit.startswith('1') or registru.credit.startswith('4'):
+            tip_operatie = 'datorie'
+        
+        data.append({
+            'data': registru.datadoc,
+            'luna': registru.datadoc.replace(day=1),
+            'debit': registru.debit,
+            'credit': registru.credit,
+            'suma': float(registru.suma),
+            'tip_operatie': tip_operatie,
+            'explicatii': registru.explicatii or '',
+            'categorie': get_categorie_cont(registru.debit, registru.credit)
+        })
+    
+    df = pd.DataFrame(data)
+    
+    # Adăugăm coloane derivate
+    if not df.empty:
+        df['an'] = df['data'].dt.year
+        df['luna_an'] = df['data'].dt.strftime('%Y-%m')
+        df['trimestru'] = df['data'].dt.quarter
+        df['zi_saptamana'] = df['data'].dt.day_name()
+    
+    return df
+
+def get_categorie_cont(debit, credit):
+    """
+    Categorizează conturile pentru analiză
+    """
+    cont = debit if debit != '0' else credit
+    
+    if cont.startswith('1'):
+        return 'capital'
+    elif cont.startswith('2'):
+        return 'imobilizari'
+    elif cont.startswith('3'):
+        return 'stocuri'
+    elif cont.startswith('4'):
+        return 'terti'
+    elif cont.startswith('5'):
+        return 'trezorerie'
+    elif cont.startswith('6'):
+        return 'cheltuieli'
+    elif cont.startswith('7'):
+        return 'venituri'
+    else:
+        return 'alte'
+
+def calculeaza_indicatorii_financiari(df):
+    """
+    Calculează indicatorii financiari principali
+    """
+    indicatori = {}
+    
+    # Venituri și cheltuieli totale
+    venituri = df[df['tip_operatie'] == 'venit']['suma'].sum()
+    cheltuieli = df[df['tip_operatie'] == 'cheltuiala']['suma'].sum()
+    profit_net = venituri - cheltuieli
+    
+    indicatori['venituri_totale'] = venituri
+    indicatori['cheltuieli_totale'] = cheltuieli
+    indicatori['profit_net'] = profit_net
+    indicatori['marja_profit'] = (profit_net / venituri * 100) if venituri > 0 else 0
+    
+    # Rata lichidității (aproximativă)
+    active_circulante = df[df['categorie'].isin(['stocuri', 'trezorerie'])]['suma'].sum()
+    datorii_curente = df[df['categorie'] == 'terti']['suma'].sum()
+    indicatori['rata_lichiditate'] = (active_circulante / datorii_curente) if datorii_curente > 0 else 0
+    
+    # Rentabilitate
+    capital_propriu = df[df['categorie'] == 'capital']['suma'].sum()
+    indicatori['rentabilitate_capital'] = (profit_net / capital_propriu * 100) if capital_propriu > 0 else 0
+    
+    # Analiză pe categorii
+    categorii_suma = df.groupby('categorie')['suma'].sum().to_dict()
+    indicatori['categorii'] = categorii_suma
+    
+    # Volum tranzacții lunare
+    tranzactii_lunare = df.groupby('luna_an').agg({
+        'suma': ['sum', 'count'],
+        'tip_operatie': lambda x: (x == 'venit').sum()
+    }).round(2)
+    
+    indicatori['tranzactii_lunare'] = tranzactii_lunare.to_dict() if not tranzactii_lunare.empty else {}
+    
+    return indicatori
+
+def calculeaza_altman_zscore(indicatori, df):
+    """
+    Calculează modelul Altman Z-Score pentru evaluarea riscului de faliment
+    Versiune adaptată pentru IMM-uri
+    """
+    try:
+        # Extragem datele necesare pentru calcul
+        capital_angajat = indicatori.get('categorii', {}).get('capital', 1)
+        active_totale = sum(indicatori.get('categorii', {}).values())
+        profit_net = indicatori.get('profit_net', 0)
+        venituri = indicatori.get('venituri_totale', 1)
+        
+        # Calculăm componentele Z-Score (formula adaptată)
+        # X1 - Capital de lucru / Active totale
+        active_circulante = indicatori.get('categorii', {}).get('stocuri', 0) + \
+                           indicatori.get('categorii', {}).get('trezorerie', 0)
+        datorii_curente = indicatori.get('categorii', {}).get('terti', 1)
+        X1 = (active_circulante - datorii_curente) / active_totale if active_totale > 0 else 0
+        
+        # X2 - Profit reinvestit / Active totale
+        X2 = profit_net / active_totale if active_totale > 0 else 0
+        
+        # X3 - Profit înainte de dobânzi și impozite / Active totale
+        # Pentru simplitate, folosim profit net
+        X3 = profit_net / active_totale if active_totale > 0 else 0
+        
+        # X4 - Valoarea de piață a capitalului / Datorii totale
+        # Folosim capital propriu raportat la datorii
+        X4 = capital_angajat / datorii_curente if datorii_curente > 0 else 0
+        
+        # X5 - Venituri / Active totale
+        X5 = venituri / active_totale if active_totale > 0 else 0
+        
+        # Calcul Z-Score (formula Altman pentru firme private)
+        Z = 0.717 * X1 + 0.847 * X2 + 3.107 * X3 + 0.420 * X4 + 0.998 * X5
+        
+        # Interpretare
+        if Z > 2.9:
+            situatie = "ZONĂ SIGURĂ"
+            interpretare = "Firma se află într-o situație financiară bună, cu risc scăzut de faliment."
+            culoare = "success"
+        elif Z > 1.23:
+            situatie = "ZONĂ GRI"
+            interpretare = "Firma se află într-o zonă de incertitudine. Este recomandată atenție."
+            culoare = "warning"
+        else:
+            situatie = "ZONĂ DE PERICOL"
+            interpretare = "Firma prezintă semne de dificultate financiară. Riscul de faliment este ridicat."
+            culoare = "danger"
+        
+        return {
+            'z_score': round(Z, 3),
+            'situatie': situatie,
+            'interpretare': interpretare,
+            'culoare': culoare,
+            'componente': {
+                'X1': round(X1, 4),
+                'X2': round(X2, 4),
+                'X3': round(X3, 4),
+                'X4': round(X4, 4),
+                'X5': round(X5, 4)
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Eroare la calculul Altman Z-Score: {str(e)}")
+        return {
+            'z_score': 0,
+            'situatie': "NECALCULABIL",
+            'interpretare': "Date insuficiente pentru calcul",
+            'culoare': "secondary",
+            'componente': {}
+        }
+
+def genereaza_grafice_statistice(df, indicatori, altman_result):
+    """
+    Generează graficele statistice în format base64
+    """
+    grafice = {}
+    
+    try:
+        # 1. Grafic evoluție venituri vs cheltuieli pe lună
+        plt.figure(figsize=(12, 6))
+        
+        if not df.empty:
+            # Grupăm pe lună
+            monthly_data = df.groupby('luna').agg({
+                'suma': 'sum',
+                'tip_operatie': lambda x: {
+                    'venituri': (x == 'venit').sum(),
+                    'cheltuieli': (x == 'cheltuiala').sum()
+                }
+            })
+            
+            # Venituri și cheltuieli pe lună
+            venituri_lunare = df[df['tip_operatie'] == 'venit'].groupby('luna')['suma'].sum()
+            cheltuieli_lunare = df[df['tip_operatie'] == 'cheltuiala'].groupby('luna')['suma'].sum()
+            
+            plt.subplot(1, 2, 1)
+            if not venituri_lunare.empty and not cheltuieli_lunare.empty:
+                plt.plot(venituri_lunare.index, venituri_lunare.values, marker='o', label='Venituri', linewidth=2)
+                plt.plot(cheltuieli_lunare.index, cheltuieli_lunare.values, marker='s', label='Cheltuieli', linewidth=2)
+                plt.title('Evoluția Veniturilor și Cheltuielilor')
+                plt.xlabel('Lună')
+                plt.ylabel('Sumă (RON)')
+                plt.legend()
+                plt.xticks(rotation=45)
+                plt.grid(True, alpha=0.3)
+        
+        # 2. Grafic componență categorii contabile
+        plt.subplot(1, 2, 2)
+        categorii = indicatori.get('categorii', {})
+        if categorii:
+            labels = list(categorii.keys())
+            sizes = list(categorii.values())
+            colors = plt.cm.Set3(np.linspace(0, 1, len(labels)))
+            
+            plt.pie(sizes, labels=labels, colors=colors, autopct='%1.1f%%', startangle=90)
+            plt.axis('equal')
+            plt.title('Structura Operațiunilor pe Categorii')
+        
+        plt.tight_layout()
+        
+        # Convertim graficul în base64
+        buffer = BytesIO()
+        plt.savefig(buffer, format='png', dpi=100, bbox_inches='tight')
+        buffer.seek(0)
+        image_png = buffer.getvalue()
+        buffer.close()
+        
+        grafice['evolutie_categorii'] = base64.b64encode(image_png).decode('utf-8')
+        plt.close()
+        
+        # 3. Grafic Altman Z-Score
+        plt.figure(figsize=(10, 6))
+        
+        if altman_result['z_score'] > 0:
+            # Creăm un grafic radar pentru componentele Altman
+            componente = list(altman_result['componente'].keys())
+            valori = list(altman_result['componente'].values())
+            
+            # Adăugăm prima valoare la sfârșit pentru a închide radarul
+            componente_radar = componente + [componente[0]]
+            valori_radar = valori + [valori[0]]
+            
+            # Unghiuri pentru radar
+            angles = np.linspace(0, 2*np.pi, len(componente_radar), endpoint=True)
+            
+            ax = plt.subplot(111, polar=True)
+            ax.plot(angles, valori_radar, 'o-', linewidth=2, label='Componente Altman')
+            ax.fill(angles, valori_radar, alpha=0.25)
+            ax.set_thetagrids(angles[:-1] * 180/np.pi, componente)
+            ax.set_title('Componente Model Altman Z-Score', size=14, fontweight='bold')
+            ax.grid(True)
+            ax.legend()
+        
+        buffer = BytesIO()
+        plt.savefig(buffer, format='png', dpi=100, bbox_inches='tight')
+        buffer.seek(0)
+        image_png = buffer.getvalue()
+        buffer.close()
+        
+        grafice['altman_radar'] = base64.b64encode(image_png).decode('utf-8')
+        plt.close()
+        
+        # 4. Grafic profitabilitate
+        plt.figure(figsize=(10, 6))
+        
+        if not df.empty and 'venituri_totale' in indicatori:
+            indicators_to_plot = {
+                'Venituri': indicatori['venituri_totale'],
+                'Cheltuieli': indicatori['cheltuieli_totale'],
+                'Profit Net': indicatori['profit_net']
+            }
+            
+            plt.bar(indicators_to_plot.keys(), indicators_to_plot.values(), 
+                   color=['green', 'red', 'blue'], alpha=0.7)
+            plt.title('Indicatori Financiari Principali')
+            plt.ylabel('Sumă (RON)')
+            plt.grid(True, alpha=0.3)
+            
+            # Adăugăm valorile pe bare
+            for i, v in enumerate(indicators_to_plot.values()):
+                plt.text(i, v + max(indicators_to_plot.values()) * 0.01, 
+                        f'{v:,.0f}', ha='center', va='bottom')
+        
+        buffer = BytesIO()
+        plt.savefig(buffer, format='png', dpi=100, bbox_inches='tight')
+        buffer.seek(0)
+        image_png = buffer.getvalue()
+        buffer.close()
+        
+        grafice['indicatori_principali'] = base64.b64encode(image_png).decode('utf-8')
+        plt.close()
+        
+    except Exception as e:
+        logger.error(f"Eroare la generarea graficelor: {str(e)}")
+        grafice['eroare'] = f"Nu s-au putut genera graficele: {str(e)}"
+    
+    return grafice
+
+def analizeaza_trendurile(df):
+    """
+    Realizează analiza trendurilor din date
+    """
+    analiza = {}
+    
+    try:
+        if df.empty:
+            return analiza
+        
+        # Trend lunar
+        monthly_trend = df.groupby('luna')['suma'].sum()
+        if len(monthly_trend) > 1:
+            # Calculăm trend linear
+            x = np.arange(len(monthly_trend))
+            y = monthly_trend.values
+            z = np.polyfit(x, y, 1)
+            trend_slope = z[0]
+            
+            analiza['trend_lunar'] = {
+                'directie': 'CRESCĂTOR' if trend_slope > 0 else 'DESCĂTOR',
+                'rata_crestere': abs(trend_slope),
+                'consistenta': 'ÎNALTĂ' if abs(trend_slope) > np.std(y) else 'SCĂZUTĂ'
+            }
+        
+        # Sezonalitate (analiză simplificată)
+        daily_avg = df.groupby(df['data'].dt.dayofweek)['suma'].mean()
+        if not daily_avg.empty:
+            zi_max = daily_avg.idxmax()
+            zile = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică']
+            analiza['zi_maxima'] = zile[zi_max] if zi_max < len(zile) else 'Necunoscută'
+        
+        # Concentrarea tranzacțiilor
+        top_5_tranzactii = df.nlargest(5, 'suma')[['data', 'suma', 'explicatii']]
+        analiza['tranzactii_mari'] = top_5_tranzactii.to_dict('records')
+        
+    except Exception as e:
+        logger.error(f"Eroare la analiza trendurilor: {str(e)}")
+    
+    return analiza
+
+@login_required(login_url='login')
+def export_statistici_csv(request):
+    """
+    Exportă statisticile în format CSV
+    """
+    firma = request.user
+    
+    try:
+        registre = RegistruJurnal.objects.filter(firma=firma).order_by('datadoc')
+        df = creaza_dataframe_registre(registre)
+        indicatori = calculeaza_indicatorii_financiari(df)
+        
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="statistici_financiare_{firma.denumire}.csv"'
+        
+        writer = csv.writer(response)
+        
+        # Scriem indicatorii principali
+        writer.writerow(['INDICATOR', 'VALOARE'])
+        writer.writerow(['Venituri Totale', indicatori.get('venituri_totale', 0)])
+        writer.writerow(['Cheltuieli Totale', indicatori.get('cheltuieli_totale', 0)])
+        writer.writerow(['Profit Net', indicatori.get('profit_net', 0)])
+        writer.writerow(['Marja Profit (%)', indicatori.get('marja_profit', 0)])
+        writer.writerow(['Rata Lichidității', indicatori.get('rata_lichiditate', 0)])
+        
+        writer.writerow([])
+        writer.writerow(['CATEGORIE', 'SUMA'])
+        for categorie, suma in indicatori.get('categorii', {}).items():
+            writer.writerow([categorie, suma])
+        
+        return response
+        
+    except Exception as e:
+        messages.error(request, f"Eroare la export: {str(e)}")
+        return redirect('dashboard_firma_statistici')
+
 
 
 # Pagina admin-dashboard + bara cautare firma dupa denumire
@@ -1477,8 +1932,8 @@ def admin_login_view(request):
 
     return render(request, "main/admin_login.html", {"mesaj": mesaj, "next": next_url})
 
-# Functionalitati in admin_dashboard 
-# 1 -> Introducere firma in baza de date
+
+# Introducere firma in baza de date
 @login_required
 def inregistrare_firma(request):
     if not request.user.is_superuser:
@@ -1497,7 +1952,7 @@ def inregistrare_firma(request):
     
     return render(request, 'main/inregistrare_firma.html', {'form': form})
 
-# 2 -> Afisare firme si detalii
+#  Afisare firme si detalii
 @login_required
 def afisare_firme(request):
     if not request.user.is_superuser:
@@ -1526,8 +1981,8 @@ def admin_dashboard_firma(request, firma_id):
     return render(request, 'main/admin_dashboard_firma.html', {'firma': firma, 'form': form})
 
 
-# Functionalitati dashboard_firma
-# 1 -> Sterge o firma  
+
+# Stergere firma  
 @login_required
 def sterge_firma(request, firma_id):
     if not request.user.is_superuser:
@@ -1539,12 +1994,6 @@ def sterge_firma(request, firma_id):
         firma.delete()
         messages.success(request, f"Firma '{firma.denumire}' a fost ștearsă cu succes!")
         return redirect('afisare_firme')  # redirect la lista firmelor
-
-
-
-
-
-
 
 
 

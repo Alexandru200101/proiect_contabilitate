@@ -115,9 +115,8 @@ class RegistruJurnal(models.Model):
 
     def __str__(self):
         return f"{self.firma.denumire_firma} - {self.feldoc or 'DOC'} {self.nrdoc}"
-    
-     
-    
+
+
 
 
 

@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistici Financiare - Dashboard Modern</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --dark: #121212;
+            --darker: #0a0a0a;
+            --cream: #f5e6d3;
+            --cream-light: #fdf6ec;
+            --red: #e63946;
+            --red-dark: #c1121f;
+            --gold: #d4af37;
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+            color: var(--cream);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Header Styles */
+        .main-header {
+            background: rgba(18, 18, 18, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(229, 57, 70, 0.3);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            animation: slideDown 0.8s ease-out;
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.8rem;
+            background: linear-gradient(45deg, var(--red), var(--gold));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo i {
+            margin-right: 10px;
+            font-size: 2rem;
+        }
+
+        .nav-link {
+            color: var(--cream) !important;
+            font-weight: 500;
+            margin: 0 10px;
+            padding: 8px 16px !important;
+            border-radius: 30px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link:hover {
+            color: var(--red) !important;
+            transform: translateY(-2px);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: var(--red);
+            transition: var(--transition);
+            transform: translateX(-50%);
+        }
+
+        .nav-link:hover::after {
+            width: 80%;
+        }
+
+        .nav-link.active {
+            background: rgba(229, 57, 70, 0.2);
+            color: var(--red) !important;
+        }
+
+        .nav-link.active::after {
+            width: 80%;
+        }
+
+        /* Main Content */
+        .dashboard-container {
+            padding: 2rem 0;
+            animation: fadeIn 1s ease-out;
+        }
+
+        .page-title {
+            font-weight: 700;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, var(--cream), var(--gold));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            position: relative;
+            display: inline-block;
+        }
+
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--red), var(--gold));
+            border-radius: 2px;
+        }
+
+        /* Cards */
+        .stat-card {
+            background: rgba(30, 30, 30, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid rgba(229, 57, 70, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: var(--transition);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            animation: cardSlideUp 0.6s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+        .stat-card:nth-child(4) { animation-delay: 0.4s; }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--red), var(--gold));
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(229, 57, 70, 0.2);
+            border-color: rgba(229, 57, 70, 0.3);
+        }
+
+        .card-header-custom {
+            background: transparent;
+            border-bottom: 1px solid rgba(245, 230, 211, 0.1);
+            padding: 1rem 0;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-weight: 600;
+            font-size: 1.3rem;
+            color: var(--cream);
+            display: flex;
+            align-items: center;
+        }
+
+        .card-title i {
+            margin-right: 10px;
+            color: var(--gold);
+        }
+
+        /* Value Styles */
+        .value-main {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 1rem 0;
+        }
+
+        .value-venituri { color: #4ade80; }
+        .value-cheltuieli { color: var(--red); }
+        .value-profit { color: var(--gold); }
+        .value-marja { color: #60a5fa; }
+
+        /* Altman Z-Score Card */
+        .altman-card {
+            background: linear-gradient(135deg, rgba(30, 30, 30, 0.9) 0%, rgba(18, 18, 18, 0.9) 100%);
+            border: 1px solid;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .altman-card.safe { border-color: rgba(74, 222, 128, 0.5); }
+        .altman-card.warning { border-color: rgba(251, 191, 36, 0.5); }
+        .altman-card.danger { border-color: rgba(239, 68, 68, 0.5); }
+        .altman-card.secondary { border-color: rgba(156, 163, 175, 0.5); }
+
+        .altman-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, rgba(229, 57, 70, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            transform: translate(30%, -30%);
+        }
+
+        .z-score-value {
+            font-size: 4rem;
+            font-weight: 800;
+            line-height: 1;
+            margin: 1rem 0;
+        }
+
+        .z-score-safe { color: #4ade80; text-shadow: 0 0 20px rgba(74, 222, 128, 0.5); }
+        .z-score-warning { color: #fbbf24; text-shadow: 0 0 20px rgba(251, 191, 36, 0.5); }
+        .z-score-danger { color: var(--red); text-shadow: 0 0 20px rgba(229, 57, 70, 0.5); }
+        .z-score-secondary { color: #9ca3af; text-shadow: 0 0 20px rgba(156, 163, 175, 0.5); }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin: 1rem 0;
+        }
+
+        .status-safe { background: rgba(74, 222, 128, 0.2); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.5); }
+        .status-warning { background: rgba(251, 191, 36, 0.2); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.5); }
+        .status-danger { background: rgba(239, 68, 68, 0.2); color: var(--red); border: 1px solid rgba(239, 68, 68, 0.5); }
+        .status-secondary { background: rgba(156, 163, 175, 0.2); color: #9ca3af; border: 1px solid rgba(156, 163, 175, 0.5); }
+
+        /* Chart Containers */
+        .chart-container {
+            background: rgba(30, 30, 30, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(229, 57, 70, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: var(--transition);
+            animation: fadeIn 0.8s ease-out;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-container::before {
+            content: '\f00e';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: var(--cream);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: var(--transition);
+            z-index: 2;
+        }
+
+        .chart-container:hover::before {
+            opacity: 1;
+        }
+
+        .chart-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 36px rgba(229, 57, 70, 0.15);
+        }
+
+        .chart-title {
+            font-weight: 600;
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            color: var(--cream);
+            display: flex;
+            align-items: center;
+        }
+
+        .chart-title i {
+            margin-right: 10px;
+            color: var(--gold);
+        }
+
+        .chart-image {
+            transition: var(--transition);
+            width: 100%;
+            height: auto;
+        }
+
+        .chart-container:hover .chart-image {
+            transform: scale(1.02);
+        }
+
+        /* Buttons */
+        .btn-custom {
+            background: linear-gradient(45deg, var(--red), var(--red-dark));
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 30px;
+            font-weight: 600;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .btn-custom::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, var(--gold), var(--red));
+            transition: var(--transition);
+            z-index: -1;
+        }
+
+        .btn-custom:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(229, 57, 70, 0.3);
+        }
+
+        .btn-custom:hover::before {
+            left: 0;
+        }
+
+        .btn-outline-custom {
+            background: transparent;
+            color: var(--cream);
+            border: 2px solid var(--red);
+            padding: 0.8rem 2rem;
+            border-radius: 30px;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .btn-outline-custom:hover {
+            background: var(--red);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(229, 57, 70, 0.3);
+        }
+
+        /* Table Styles */
+        .table-custom {
+            background: rgba(30, 30, 30, 0.7);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(245, 230, 211, 0.1);
+        }
+
+        .table-custom thead th {
+            background: rgba(229, 57, 70, 0.2);
+            color: var(--cream);
+            font-weight: 600;
+            border: none;
+            padding: 1rem;
+        }
+
+        .table-custom tbody td {
+            background: rgba(40, 40, 40, 0.5);
+            color: var(--cream);
+            border-color: rgba(245, 230, 211, 0.1);
+            padding: 1rem;
+            transition: var(--transition);
+        }
+
+        .table-custom tbody tr:hover td {
+            background: rgba(229, 57, 70, 0.1);
+        }
+
+        /* Footer */
+        .main-footer {
+            background: rgba(10, 10, 10, 0.9);
+            border-top: 1px solid rgba(229, 57, 70, 0.3);
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+
+        .footer-links a {
+            color: var(--cream);
+            text-decoration: none;
+            transition: var(--transition);
+            margin: 0 10px;
+        }
+
+        .footer-links a:hover {
+            color: var(--red);
+        }
+
+        /* Modal Styles for Zoom */
+        .modal-content {
+            background: var(--darker);
+            border: 1px solid rgba(229, 57, 70, 0.3);
+            border-radius: 16px;
+            color: var(--cream);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid rgba(229, 57, 70, 0.3);
+            background: rgba(18, 18, 18, 0.9);
+        }
+
+        .modal-title {
+            font-weight: 600;
+            color: var(--cream);
+        }
+
+        .btn-close {
+            filter: invert(1);
+        }
+
+        .modal-body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .modal-image {
+            max-width: 100%;
+            max-height: 70vh;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes cardSlideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        /* Loading Animation */
+        .loading-spinner {
+            display: inline-block;
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(245, 230, 211, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--red);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 2rem;
+            }
+            
+            .value-main {
+                font-size: 2rem;
+            }
+            
+            .z-score-value {
+                font-size: 3rem;
+            }
+            
+            .stat-card {
+                padding: 1rem;
+            }
+        }
+
+        /* Error Message */
+        .error-container {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .error-icon {
+            font-size: 4rem;
+            color: var(--red);
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="main-header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <a href="#" class="logo">
+                    <i class="fas fa-chart-network"></i>FinDash
+                </a>
+                
+                <nav class="navbar navbar-expand-lg">
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                        <i class="fas fa-bars text-cream"></i>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav">
+                            <li class="nav-item">
+                                <a class="nav-link" href="#"><i class="fas fa-home me-1"></i>Acasă</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link active" href="#"><i class="fas fa-chart-line me-1"></i>Statistici</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#"><i class="fas fa-file-invoice me-1"></i>Rapoarte</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#"><i class="fas fa-cog me-1"></i>Setări</a>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <div class="container">
+            {% if eroare %}
+            <div class="error-container">
+                <div class="error-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3 class="text-red">Eroare la încărcarea datelor</h3>
+                <p class="mt-3">{{ eroare }}</p>
+                <a href="{% url 'dashboard_firma_jurnal' %}" class="btn btn-custom mt-3">
+                    <i class="fas fa-arrow-left me-2"></i>Înapoi la Jurnal
+                </a>
+            </div>
+            {% else %}
+            <div class="row mb-5">
+                <div class="col-12">
+                    <h1 class="page-title">Dashboard Statistici Financiare</h1>
+                    <p class="text-cream">Analiză avansată a performanței companiei dvs. | {{ perioada_analiza }} | {{ total_inregistrari }} înregistrări</p>
+                </div>
+            </div>
+
+            <!-- Indicatorii principali -->
+            <div class="row mb-5">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="card-header-custom">
+                            <h3 class="card-title"><i class="fas fa-arrow-up"></i>Venituri Totale</h3>
+                        </div>
+                        <div class="value-main value-venituri">{{ indicatori.venituri_totale|floatformat:2 }} RON</div>
+                        <p class="text-muted">Analiză bazată pe conturile de venit</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="card-header-custom">
+                            <h3 class="card-title"><i class="fas fa-arrow-down"></i>Cheltuieli Totale</h3>
+                        </div>
+                        <div class="value-main value-cheltuieli">{{ indicatori.cheltuieli_totale|floatformat:2 }} RON</div>
+                        <p class="text-muted">Analiză bazată pe conturile de cheltuieli</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="card-header-custom">
+                            <h3 class="card-title"><i class="fas fa-coins"></i>Profit Net</h3>
+                        </div>
+                        <div class="value-main value-profit">{{ indicatori.profit_net|floatformat:2 }} RON</div>
+                        <p class="text-muted">Venituri - Cheltuieli</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="card-header-custom">
+                            <h3 class="card-title"><i class="fas fa-percentage"></i>Marja Profit</h3>
+                        </div>
+                        <div class="value-main value-marja">{{ indicatori.marja_profit|floatformat:2 }}%</div>
+                        <p class="text-muted">Rentabilitatea operațională</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modelul Altman Z-Score -->
+            <div class="row mb-5">
+                <div class="col-12">
+                    <div class="stat-card altman-card {{ altman.culoare }}">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <div class="card-header-custom">
+                                    <h3 class="card-title"><i class="fas fa-analytics"></i>Model Altman Z-Score</h3>
+                                </div>
+                                <div class="z-score-value z-score-{{ altman.culoare }}">{{ altman.z_score }}</div>
+                                <div class="status-badge status-{{ altman.culoare }}">{{ altman.situatie }}</div>
+                                <p class="mt-3">{{ altman.interpretare }}</p>
+                                
+                                <div class="mt-4">
+                                    <h5>Componente Z-Score:</h5>
+                                    <div class="row mt-3">
+                                        <div class="col-6 mb-2">X1 (Lichiditate): {{ altman.componente.X1|default:"0.0000" }}</div>
+                                        <div class="col-6 mb-2">X2 (Profit): {{ altman.componente.X2|default:"0.0000" }}</div>
+                                        <div class="col-6 mb-2">X3 (Rentabilitate): {{ altman.componente.X3|default:"0.0000" }}</div>
+                                        <div class="col-6 mb-2">X4 (Solvabilitate): {{ altman.componente.X4|default:"0.0000" }}</div>
+                                        <div class="col-6 mb-2">X5 (Activitate): {{ altman.componente.X5|default:"0.0000" }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="chart-container" data-bs-toggle="modal" data-bs-target="#imageModal" data-image="altman_radar">
+                                    <h4 class="chart-title"><i class="fas fa-chart-radar"></i>Analiza Componentelor</h4>
+                                    {% if grafice.altman_radar %}
+                                        <img src="data:image/png;base64,{{ grafice.altman_radar }}" alt="Analiza Altman Z-Score" class="chart-image">
+                                    {% else %}
+                                        <div class="text-center py-4">
+                                            <div class="loading-spinner mx-auto mb-3"></div>
+                                            <p>Graficul nu este disponibil</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Graficele principale -->
+            <div class="row mb-5">
+                <div class="col-md-8">
+                    <div class="chart-container" data-bs-toggle="modal" data-bs-target="#imageModal" data-image="evolutie_categorii">
+                        <h4 class="chart-title"><i class="fas fa-chart-line"></i>Evoluția Veniturilor și Cheltuielilor</h4>
+                        {% if grafice.evolutie_categorii %}
+                            <img src="data:image/png;base64,{{ grafice.evolutie_categorii }}" alt="Evoluția Veniturilor și Cheltuielilor" class="chart-image">
+                        {% else %}
+                            <div class="text-center py-4">
+                                <div class="loading-spinner mx-auto mb-3"></div>
+                                <p>Graficul nu este disponibil</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="chart-container" data-bs-toggle="modal" data-bs-target="#imageModal" data-image="indicatori_principali">
+                        <h4 class="chart-title"><i class="fas fa-chart-pie"></i>Structura Operațiunilor</h4>
+                        {% if grafice.indicatori_principali %}
+                            <img src="data:image/png;base64,{{ grafice.indicatori_principali }}" alt="Structura Operațiunilor" class="chart-image">
+                        {% else %}
+                            <div class="text-center py-4">
+                                <div class="loading-spinner mx-auto mb-3"></div>
+                                <p>Graficul nu este disponibil</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analiza detaliată și Tranzacții -->
+            <div class="row mb-5">
+                <div class="col-md-6">
+                    <div class="chart-container">
+                        <h4 class="chart-title"><i class="fas fa-trending-up"></i>Analiza Trendurilor</h4>
+                        <div class="p-3">
+                            {% if analiza_trend.trend_lunar %}
+                            <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded" style="background: rgba(229, 57, 70, 0.1);">
+                                <span>Trend Lunar:</span>
+                                <span class="badge {% if analiza_trend.trend_lunar.directie == 'CRESCĂTOR' %}bg-success{% else %}bg-danger{% endif %}">
+                                    {{ analiza_trend.trend_lunar.directie }}
+                                </span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded" style="background: rgba(229, 57, 70, 0.1);">
+                                <span>Consistență:</span>
+                                <span class="badge {% if analiza_trend.trend_lunar.consistenta == 'ÎNALTĂ' %}bg-success{% else %}bg-warning{% endif %}">
+                                    {{ analiza_trend.trend_lunar.consistenta }}
+                                </span>
+                            </div>
+                            {% endif %}
+                            
+                            {% if analiza_trend.zi_maxima %}
+                            <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded" style="background: rgba(229, 57, 70, 0.1);">
+                                <span>Zi cu activitate maximă:</span>
+                                <span class="badge bg-primary">{{ analiza_trend.zi_maxima }}</span>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="d-flex justify-content-between align-items-center p-3 rounded" style="background: rgba(229, 57, 70, 0.1);">
+                                <span>Rata Lichidității:</span>
+                                <span class="badge {% if indicatori.rata_lichiditate > 1 %}bg-success{% else %}bg-warning{% endif %}">
+                                    {{ indicatori.rata_lichiditate|floatformat:2 }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="chart-container">
+                        <h4 class="chart-title"><i class="fas fa-list-alt"></i>Tranzacții Semnificative</h4>
+                        <div class="table-responsive">
+                            {% if analiza_trend.tranzactii_mari %}
+                            <table class="table table-custom">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Suma</th>
+                                        <th>Descriere</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for tranz in analiza_trend.tranzactii_mari %}
+                                    <tr>
+                                        <td>{{ tranz.data|date:"d.m.Y" }}</td>
+                                        <td class="fw-bold">{{ tranz.suma|floatformat:2 }} RON</td>
+                                        <td>{{ tranz.explicatii|truncatewords:5 }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            {% else %}
+                            <div class="text-center py-4">
+                                <p class="text-muted">Nu există tranzacții semnificative de afișat.</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Structura Categoriilor -->
+            <div class="row mb-5">
+                <div class="col-12">
+                    <div class="chart-container">
+                        <h4 class="chart-title"><i class="fas fa-sitemap"></i>Structura Categoriilor Contabile</h4>
+                        <div class="row">
+                            {% for categorie, suma in indicatori.categorii.items %}
+                            <div class="col-md-4 mb-3">
+                                <div class="d-flex justify-content-between align-items-center p-3 rounded" style="background: rgba(229, 57, 70, 0.1);">
+                                    <span class="text-capitalize">{{ categorie }}:</span>
+                                    <span class="fw-bold">{{ suma|floatformat:2 }} RON</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Butoane acțiune -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="d-flex gap-3 justify-content-end">
+                        <a href="{% url 'export_statistici_csv' %}" class="btn btn-custom">
+                            <i class="fas fa-download me-2"></i>Export CSV
+                        </a>
+                        <a href="{% url 'dashboard_firma_jurnal' %}" class="btn btn-outline-custom">
+                            <i class="fas fa-arrow-left me-2"></i>Înapoi la Jurnal
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2023 FinDash Analytics. Toate drepturile rezervate.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="footer-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal for Zoomed Images -->
+    <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="imageModalLabel">Vizualizare Grafic</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <img id="modalImage" src="" alt="Grafic mărit" class="modal-image">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Animații la încărcare
+        document.addEventListener('DOMContentLoaded', function() {
+            // Adăugăm efect de fade-in la elemente
+            const cards = document.querySelectorAll('.stat-card, .chart-container');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+            });
+
+            // Efect de hover pentru carduri
+            const statCards = document.querySelectorAll('.stat-card');
+            statCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-10px)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+
+            // Animare pentru valorile principale
+            const valueElements = document.querySelectorAll('.value-main');
+            valueElements.forEach(el => {
+                el.classList.add('pulse');
+            });
+
+            // Funcționalitate pentru zoom pe grafice
+            const chartContainers = document.querySelectorAll('.chart-container[data-image]');
+            const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+            const modalImage = document.getElementById('modalImage');
+            const modalTitle = document.getElementById('imageModalLabel');
+
+            chartContainers.forEach(container => {
+                container.addEventListener('click', function() {
+                    const imageType = this.getAttribute('data-image');
+                    const imageSrc = this.querySelector('img').src;
+                    
+                    // Setăm imaginea în modal
+                    modalImage.src = imageSrc;
+                    
+                    // Setăm titlul modalului în funcție de tipul graficului
+                    const chartTitle = this.querySelector('.chart-title').textContent;
+                    modalTitle.textContent = chartTitle;
+                    
+                    // Afișăm modalul
+                    modal.show();
+                });
+            });
+
+            // Adăugăm posibilitatea de a închide modalul cu tasta ESC
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    modal.hide();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
