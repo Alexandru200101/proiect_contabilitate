@@ -1329,7 +1329,7 @@
                 <!-- BUTON NOU PENTRU COMPLETARE CONTURI -->
                 <button class="complete-button" id="completeAccountsBtn">
                     <i class="fas fa-calculator"></i>
-                    Completează Conturi
+                    Închide Conturi
                 </button>
                 <button class="export-button" id="exportButton">
                     <i class="fas fa-download"></i>
@@ -1534,7 +1534,7 @@
 
                 <div class="alert-info" id="tvaInfo">
                     <i class="fas fa-info-circle"></i>
-                    <span>Pentru conturile de cheltuieli (6xx) sau venituri (7xx), TVA-ul de 21% va fi calculat și adăugat automat.</span>
+                    <span>Pentru conturile care incep cu 411 (client) sau 401 (furnizor), TVA-ul de 21% va fi calculat și adăugat automat.</span>
                 </div>
                 
                 <div class="form-row">
@@ -1782,7 +1782,7 @@
                 const credit = $('#credit').val();
                 
                 // Verifică dacă debitul începe cu 6 sau creditul începe cu 7
-                const needsTva = (debit && debit.startsWith('6')) || (credit && credit.startsWith('7'));
+                const needsTva = (debit && debit.startsWith('411')) || (credit && credit.startsWith('401'));
                 
                 if (needsTva) {
                     tvaInfo.style.display = 'flex';

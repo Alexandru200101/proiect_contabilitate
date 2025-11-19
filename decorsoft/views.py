@@ -18,6 +18,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
+import traceback
 
 # Django imports
 from django.shortcuts import render, redirect, get_object_or_404
@@ -176,79 +177,89 @@ def dashboard_firma_jurnal(request):
 @require_POST
 def adauga_registru_ajax(request):
     logger.info(f"Încercare adăugare înregistrare jurnal pentru user: {request.user.email}")
+
     form = RegistruJurnalForm(request.POST)
 
-    if form.is_valid():
-        registru = form.save(commit=False)
-        registru.firma = request.user
-        registru.save()
-        logger.info(f"Înregistrare jurnal creată cu ID: {registru.id} pentru user: {request.user.email}")
-
-        tva_operatie = None
-        TVA = Decimal("0.21")
-
-        # ---------------------------------
-        # TVA colectată (client) – Debit 411
-        # ---------------------------------
-        if registru.debit == "411":
-            valoare_tva = (registru.suma * TVA).quantize(Decimal("0.01"))
-            logger.debug(f"Generare TVA colectată pentru înregistrare {registru.id}: {valoare_tva}")
-
-            tva_operatie = RegistruJurnal.objects.create(
-                firma=request.user,
-                datadoc=registru.datadoc,
-                feldoc=f"{registru.feldoc} - TVA",
-                nrdoc=f"{registru.nrdoc}-TVA",
-                debit="411",
-                credit="4427",
-                suma=valoare_tva,
-                explicatii=f"TVA colectată 21% pentru document {registru.nrdoc}",
-                parent=registru  #  operațiune copil
-            )
-            logger.info(f"TVA colectată creată cu ID: {tva_operatie.id}")
-
-        # ---------------------------------
-        # TVA deductibilă (furnizor) – Credit 401
-        # ---------------------------------
-        if registru.credit == "401":
-            valoare_tva = (registru.suma * TVA).quantize(Decimal("0.01"))
-            logger.debug(f"Generare TVA deductibilă pentru înregistrare {registru.id}: {valoare_tva}")
-
-            tva_operatie = RegistruJurnal.objects.create(
-                firma=request.user,
-                datadoc=registru.datadoc,
-                feldoc=f"{registru.feldoc} - TVA",
-                nrdoc=f"{registru.nrdoc}-TVA",
-                debit="4426",
-                credit="401",
-                suma=valoare_tva,
-                explicatii=f"TVA deductibilă 21% pentru document {registru.nrdoc}",
-                parent=registru  #  operațiune copil
-            )
-            logger.info(f"TVA deductibilă creată cu ID: {tva_operatie.id}")
-
-        # -----------------------------
-        # Răspuns AJAX
-        # -----------------------------
-        logger.info(f"Înregistrare {registru.id} adăugată cu succes")
-        return JsonResponse({
-            'success': True,
-            'message': 'Înregistrarea a fost adăugată!',
-            'data': {
-                'id': registru.id,
-                'feldoc': registru.feldoc,
-                'nrdoc': registru.nrdoc,
-                'suma': str(registru.suma),
-                'explicatii': registru.explicatii,
-                'datadoc': registru.datadoc.strftime('%Y-%m-%d %H:%M'),
-                'tva_added': tva_operatie is not None,
-                'tva_id': tva_operatie.id if tva_operatie else None
-            }
-        })
-
-    else:
+    if not form.is_valid():
         logger.warning(f"Formular invalid pentru adăugare înregistrare: {form.errors}")
         return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+
+    # Salvare operațiune principală
+    registru = form.save(commit=False)
+    registru.firma = request.user
+    registru.save()
+
+    logger.info(f"Înregistrare jurnal creată cu ID: {registru.id} pentru user: {request.user.email}")
+
+    # -----------------------
+    # TVA AUTO
+    # -----------------------
+    TVA = Decimal("0.21")
+    tva_operatie = None
+
+    debit = registru.debit.strip()
+    credit = registru.credit.strip()
+
+    # ---------------------------------
+    # TVA colectată (client) – Debit 411*
+    # ---------------------------------
+    if debit.startswith("411"):
+        valoare_tva = (registru.suma * TVA).quantize(Decimal("0.01"))
+        logger.debug(f"Generare TVA colectată pentru înregistrare {registru.id}: {valoare_tva}")
+
+        tva_operatie = RegistruJurnal.objects.create(
+            firma=request.user,
+            datadoc=registru.datadoc,
+            feldoc=f"{registru.feldoc} - TVA",
+            nrdoc=f"{registru.nrdoc}-TVA",
+            debit=debit,
+            credit="4427",
+            suma=valoare_tva,
+            explicatii=f"TVA colectata 21% pentru document {registru.nrdoc}",
+            parent=registru
+        )
+
+        logger.info(f"TVA colectată creată cu ID: {tva_operatie.id}")
+
+    # ---------------------------------
+    # TVA deductibilă (furnizor) – Credit 401*
+    # ---------------------------------
+    if credit.startswith("401"):
+        valoare_tva = (registru.suma * TVA).quantize(Decimal("0.01"))
+        logger.debug(f"Generare TVA deductibilă pentru înregistrare {registru.id}: {valoare_tva}")
+
+        tva_operatie = RegistruJurnal.objects.create(
+            firma=request.user,
+            datadoc=registru.datadoc,
+            feldoc=f"{registru.feldoc} - TVA",
+            nrdoc=f"{registru.nrdoc}-TVA",
+            debit="4426",
+            credit=credit,
+            suma=valoare_tva,
+            explicatii=f"TVA deductibilă 21% pentru document {registru.nrdoc}",
+            parent=registru
+        )
+
+        logger.info(f"TVA deductibilă creată cu ID: {tva_operatie.id}")
+
+    # -----------------------------
+    # Răspuns AJAX
+    # -----------------------------
+    return JsonResponse({
+        'success': True,
+        'message': 'Înregistrarea a fost adăugată!',
+        'data': {
+            'id': registru.id,
+            'feldoc': registru.feldoc,
+            'nrdoc': registru.nrdoc,
+            'suma': str(registru.suma),
+            'explicatii': registru.explicatii,
+            'datadoc': registru.datadoc.strftime('%Y-%m-%d %H:%M'),
+            'tva_added': tva_operatie is not None,
+            'tva_id': tva_operatie.id if tva_operatie else None
+        }
+    })
+
 
 
 
@@ -350,7 +361,7 @@ def export_registru(request):
             buffer = BytesIO()
             doc = SimpleDocTemplate(buffer, pagesize=A4)
             styles = getSampleStyleSheet()
-            data = [['Nr Doc', 'Tip Doc', 'Data', 'Debit', 'Credit', 'Suma', 'Explicații']]
+            data = [['Nr Doc', 'Tip Doc', 'Data', 'Debit', 'Credit', 'Suma', 'Explicatii']]
             for op in operatiuni:
                 data.append([
                     op.nrdoc,
@@ -586,88 +597,72 @@ def _render_profit_loss_template(request):
 @login_required
 def import_jurnal_csv(request):
     logger.info(f"Încercare import CSV jurnal pentru user: {request.user.email}")
-    
+
     if request.method != "POST":
-        logger.warning("Import CSV - metodă invalidă (nu POST)")
         return JsonResponse({"success": False, "message": "Metodă invalidă."})
 
     firma = request.user
 
     if "csv_file" not in request.FILES:
-        logger.warning("Import CSV - niciun fișier selectat")
         return JsonResponse({"success": False, "message": "Nu ai selectat niciun fișier."})
 
-    file = request.FILES["csv_file"]
-    logger.info(f"Fișier CSV încărcat: {file.name}, size: {file.size}")
-
     try:
-        decoded_file = file.read().decode('utf-8').splitlines()
-        reader = csv.DictReader(decoded_file)
-        # Curățăm eventuale spații în header
+        decoded = request.FILES["csv_file"].read().decode("utf-8").splitlines()
+        reader = csv.DictReader(decoded)
         reader.fieldnames = [f.strip() for f in reader.fieldnames]
-        logger.debug(f"Header CSV: {reader.fieldnames}")
-    except Exception as e:
-        logger.exception("CSV invalid sau nu poate fi citit")
+    except:
         return JsonResponse({"success": False, "message": "Fișier CSV invalid."})
 
-    adaugate = 0
+    # -----------------------------------------------------
+    # 1 Pre-încarcăm conturile valide într-un SET (instant lookup)
+    # -----------------------------------------------------
+    conturi_valide = set(
+        PlanConturi.objects.values_list("simbol", flat=True)
+    )
+
+    obiecte_de_creat = []
     erori = []
+    row_nr = 2  # începe după header
 
-    for row_num, row in enumerate(reader, start=2):  # start=2 pentru header
+    for row in reader:
+        debit = row.get("debit_scur", "").strip()
+        credit = row.get("credit_scu", "").strip()
+        suma_str = row.get("suma", "").strip()
+        data_str = row.get("data", "").strip()
+        tipdoc = row.get("tipdoc", "").strip()[:4]
+        nrdoc = row.get("nrdoc", "").strip()
+        explicatii = row.get("explicatii", "").strip()
+
+        # Validări rapide
+        if not debit or debit not in conturi_valide:
+            erori.append(f"Rând {row_nr}: Cont debit invalid: {debit}")
+            row_nr += 1
+            continue
+
+        if not credit or credit not in conturi_valide:
+            erori.append(f"Rând {row_nr}: Cont credit invalid: {credit}")
+            row_nr += 1
+            continue
+
+        # Dată
         try:
-            # Preluare câmpuri corecte
-            debit = row.get("debit_scur", "").strip()
-            credit = row.get("credit_scu", "").strip()
-            suma_str = row.get("suma", "").strip()
-            data_str = row.get("data", "").strip()
-            tipdoc = row.get("tipdoc", "").strip()[:4]
-            nrdoc = row.get("nrdoc", "").strip()
-            explicatii = row.get("explicatii", "").strip()
+            datadoc = parser.parse(data_str, dayfirst=True).date()
+        except:
+            erori.append(f"Rând {row_nr}: Dată invalidă: {data_str}")
+            row_nr += 1
+            continue
 
-            # Verificare câmpuri obligatorii
-            if not debit:
-                msg = f"Rând {row_num}: Eroare cont debit - câmp gol"
-                logger.error(msg)
-                erori.append(msg)
-                continue
-            if not credit:
-                msg = f"Rând {row_num}: Eroare cont credit - câmp gol"
-                logger.error(msg)
-                erori.append(msg)
-                continue
+        # Suma
+        try:
+            suma = Decimal(suma_str)
+        except:
+            erori.append(f"Rând {row_nr}: Sumă invalidă: {suma_str}")
+            row_nr += 1
+            continue
 
-            # Verificăm dacă conturile există în planul de conturi
-            if not PlanConturi.objects.filter(simbol=debit).exists():
-                msg = f"Rând {row_num}: Cont debit invalid: '{debit}'"
-                logger.error(msg)
-                erori.append(msg)
-                continue
-            if not PlanConturi.objects.filter(simbol=credit).exists():
-                msg = f"Rând {row_num}: Cont credit invalid: '{credit}'"
-                logger.error(msg)
-                erori.append(msg)
-                continue
-
-            # Conversie dată
-            try:
-                datadoc = parser.parse(data_str, dayfirst=True).date()
-            except Exception as e:
-                msg = f"Rând {row_num}: Eroare conversie dată - valoare: '{data_str}' | {str(e)}"
-                logger.error(msg)
-                erori.append(msg)
-                continue
-
-            # Conversie sumă
-            try:
-                suma = Decimal(suma_str)
-            except Exception as e:
-                msg = f"Rând {row_num}: Eroare conversie sumă - valoare: '{suma_str}' | {str(e)}"
-                logger.error(msg)
-                erori.append(msg)
-                continue
-
-            # Creare obiect RegistruJurnal
-            RegistruJurnal.objects.create(
+        # Construim obiectul (NU îl salvăm!)
+        obiecte_de_creat.append(
+            RegistruJurnal(
                 firma=firma,
                 feldoc=tipdoc,
                 nrdoc=nrdoc,
@@ -675,23 +670,23 @@ def import_jurnal_csv(request):
                 debit=debit,
                 credit=credit,
                 suma=suma,
-                explicatii=explicatii
+                explicatii=explicatii,
             )
-            adaugate += 1
-            logger.debug(f"Rând {row_num} importat cu succes")
+        )
 
-        except Exception as e:
-            msg = f"Rând {row_num}: Eroare neașteptată - {str(e)}"
-            logger.exception(msg)
-            erori.append(msg)
+        row_nr += 1
 
-    logger.info(f"Import finalizat: {adaugate} rânduri adăugate, {len(erori)} erori")
+    # -----------------------------------------------------
+    # 2 Bulk insert – INSEREAZĂ TOTUL DEODATĂ 
+    # -----------------------------------------------------
+    if obiecte_de_creat:
+        RegistruJurnal.objects.bulk_create(obiecte_de_creat, batch_size=500)
+
     return JsonResponse({
         "success": True,
-        "message": f"Import finalizat: {adaugate} rânduri adăugate. Erori: {len(erori)}",
-        "errors": erori
+        "message": f"Importat: {len(obiecte_de_creat)} rânduri. Erori: {len(erori)}",
+        "errors": erori,
     })
-
 
 
 
@@ -1531,7 +1526,7 @@ def calculeaza_bilant(situatie_conturi, sold_471_1an=0, sold_471_peste1an=0,
 
     except Exception as e:
         print(f"Eroare în calculul bilanțului: {e}")
-        import traceback
+        
         traceback.print_exc()
         return {f'rd_{i}': 0.0 for i in range(1, 50)}
 
@@ -1587,7 +1582,7 @@ def dashboard_firma_bilant(request):
         
     except Exception as e:
         logger.error(f"EROARE LA AFIȘAREA BILANȚULUI: {e}")
-        import traceback
+        
         logger.error(traceback.format_exc())
         
         return render(request, 'main/dashboard_firma_bilant.html', {

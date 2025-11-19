@@ -10,7 +10,7 @@ class SignupForm(forms.ModelForm):
 
     class Meta:
         model = Firma
-        fields = ["denumire", "cui", "email"]  # exclude "parola" aici
+        fields = ["denumire", "cui", "email"]  
 
     def clean_cui(self):
         cui = self.cleaned_data.get('cui')
@@ -24,8 +24,6 @@ class SignupForm(forms.ModelForm):
         email = self.cleaned_data.get('email')
         if email:
             email = email.strip()
-            # if not email.endswith('@firma.ro'):
-            #     raise ValidationError("Email-ul trebuie să fie de forma user@firma.ro")
             pattern = r'^[\w\.-]+@[\w\.-]+\.\w+$'
             if not re.fullmatch(pattern, email):
                 raise ValidationError("Email-ul nu are formatul corect.")
@@ -210,7 +208,6 @@ class RegistruJurnalForm(forms.ModelForm):
 
     class Meta:
         model = RegistruJurnal
-        # Nu includem datadoc pentru că e auto_now_add
         fields = ['nrdoc','feldoc','explicatii', 'debit', 'credit', 'suma']
 
 

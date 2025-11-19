@@ -61,14 +61,14 @@ class Firma(AbstractBaseUser, PermissionsMixin):
 
     groups = models.ManyToManyField(
         Group,
-        related_name='firma_set',  # schimbă aici ca să nu fie clash cu auth.User
+        related_name='firma_set',  # schimbăm aici ca să nu fie clash cu auth.User
         blank=True,
         help_text='Grupurile acestui utilizator.',
         verbose_name='groups'
     )
     user_permissions = models.ManyToManyField(
         Permission,
-        related_name='firma_user_set',  # schimbă aici
+        related_name='firma_user_set',  
         blank=True,
         help_text='Permisiunile specifice acestui utilizator.',
         verbose_name='user permissions'

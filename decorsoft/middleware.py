@@ -3,7 +3,7 @@ class SessionTimeoutMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        # Setează doar dacă sesiunea nu are deja o preferință setată
+        # Setam doar dacă sesiunea nu are deja o preferință setată
         if 'session_persistent' not in request.session:
             request.session.set_expiry(0)  # Default: expiră la închidere
         
