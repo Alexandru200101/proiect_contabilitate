@@ -11,19 +11,19 @@
 <!-- Statistici cont -->
 <div class="cont-stats">
     <div class="cont-stat">
-        <div class="cont-stat-value">₡{{ rulaj_debit|floatformat:2 }}</div>
+        <div class="cont-stat-value">{{ rulaj_debit|floatformat:2 }} RON</div>
         <div class="cont-stat-label">Rulaj Debit</div>
     </div>
     <div class="cont-stat">
-        <div class="cont-stat-value">₡{{ rulaj_credit|floatformat:2 }}</div>
+        <div class="cont-stat-value">{{ rulaj_credit|floatformat:2 }} RON</div>
         <div class="cont-stat-label">Rulaj Credit</div>
     </div>
     <div class="cont-stat">
-        <div class="cont-stat-value">₡{{ sold_final_debit|floatformat:2 }}</div>
+        <div class="cont-stat-value">{{ sold_final_debit|floatformat:2 }} RON</div>
         <div class="cont-stat-label">Sold Final Debit</div>
     </div>
     <div class="cont-stat">
-        <div class="cont-stat-value">₡{{ sold_final_credit|floatformat:2 }}</div>
+        <div class="cont-stat-value">{{ sold_final_credit|floatformat:2 }} RON</div>
         <div class="cont-stat-label">Sold Final Credit</div>
     </div>
 </div>
@@ -60,14 +60,14 @@
                     <td class="explicatii-cell">Sold inițial cont</td>
                     <td class="text-right amount-cell debit-amount">
                         {% if sold_initial_debit %}
-                            ₡{{ sold_initial_debit|floatformat:2 }}
+                            {{ sold_initial_debit|floatformat:2 }} RON
                         {% else %}
                             <span class="no-value">-</span>
                         {% endif %}
                     </td>
                     <td class="text-right amount-cell credit-amount">
                         {% if sold_initial_credit %}
-                            ₡{{ sold_initial_credit|floatformat:2 }}
+                            {{ sold_initial_credit|floatformat:2 }} RON
                         {% else %}
                             <span class="no-value">-</span>
                         {% endif %}
@@ -77,14 +77,14 @@
                     </td>
                     <td class="text-right sold-cell sold-debit">
                         {% if sold_initial_debit %}
-                            ₡{{ sold_initial_debit|floatformat:2 }}
+                            {{ sold_initial_debit|floatformat:2 }} RON
                         {% else %}
                             <span class="no-value">-</span>
                         {% endif %}
                     </td>
                     <td class="text-right sold-cell sold-credit">
                         {% if sold_initial_credit %}
-                            ₡{{ sold_initial_credit|floatformat:2 }}
+                            {{ sold_initial_credit|floatformat:2 }} RON
                         {% else %}
                             <span class="no-value">-</span>
                         {% endif %}
@@ -101,29 +101,29 @@
                     <td class="explicatii-cell">{{ op.explicatii }}</td>
                     <td class="text-right amount-cell debit-amount">
                         {% if op.debit == cont.simbol %}
-                            ₡{{ op.suma|floatformat:2 }}
+                            {{ op.suma|floatformat:2 }} RON
                         {% else %}
                             <span class="no-value">-</span>
                         {% endif %}
                     </td>
                     <td class="text-right amount-cell credit-amount">
                         {% if op.credit == cont.simbol %}
-                            ₡{{ op.suma|floatformat:2 }}
+                            {{ op.suma|floatformat:2 }} RON
                         {% else %}
                             <span class="no-value">-</span>
                         {% endif %}
                     </td>
-                    <td class="text-right amount-cell suma-cell">₡{{ op.suma|floatformat:2 }}</td>
+                    <td class="text-right amount-cell suma-cell">{{ op.suma|floatformat:2 }} RON</td>
                     <td class="text-right sold-cell sold-debit">
                         {% if op_data.sold_debit %}
-                            ₡{{ op_data.sold_debit|floatformat:2 }}
+                            {{ op_data.sold_debit|floatformat:2 }} RON
                         {% else %}
                             <span class="no-value">-</span>
                         {% endif %}
                     </td>
                     <td class="text-right sold-cell sold-credit">
                         {% if op_data.sold_credit %}
-                            ₡{{ op_data.sold_credit|floatformat:2 }}
+                            {{ op_data.sold_credit|floatformat:2 }} RON
                         {% else %}
                             <span class="no-value">-</span>
                         {% endif %}
@@ -140,14 +140,14 @@
                     <td class="explicatii-cell">Sold final cont</td>
                     <td class="text-right amount-cell debit-amount">
                         {% if sold_final_debit %}
-                            ₡{{ sold_final_debit|floatformat:2 }}
+                            {{ sold_final_debit|floatformat:2 }} RON
                         {% else %}
                             <span class="no-value">-</span>
                         {% endif %}
                     </td>
                     <td class="text-right amount-cell credit-amount">
                         {% if sold_final_credit %}
-                            ₡{{ sold_final_credit|floatformat:2 }}
+                            {{ sold_final_credit|floatformat:2 }} RON
                         {% else %}
                             <span class="no-value">-</span>
                         {% endif %}
@@ -157,14 +157,14 @@
                     </td>
                     <td class="text-right sold-cell sold-debit final-sold">
                         {% if sold_final_debit %}
-                            ₡{{ sold_final_debit|floatformat:2 }}
+                            {{ sold_final_debit|floatformat:2 }} RON
                         {% else %}
                             <span class="no-value">-</span>
                         {% endif %}
                     </td>
                     <td class="text-right sold-cell sold-credit final-sold">
                         {% if sold_final_credit %}
-                            ₡{{ sold_final_credit|floatformat:2 }}
+                            {{ sold_final_credit|floatformat:2 }} RON
                         {% else %}
                             <span class="no-value">-</span>
                         {% endif %}

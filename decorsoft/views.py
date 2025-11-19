@@ -1,33 +1,40 @@
-from django.shortcuts import render, redirect,get_object_or_404
-from .forms import SignupForm, LoginForm,InregistrareFirmaForm,RegistruJurnalForm
-from .models import Firma,RegistruJurnal,PlanConturi
-from django.contrib.auth import authenticate, login,logout
-from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied
-from django.contrib import messages
-from django.db.models import Q,Sum
-from django.db import transaction
-from django.http import JsonResponse,HttpResponseBadRequest, HttpResponseForbidden,HttpResponse
-from django.views.decorators.http import require_POST
+# Standard library
 import csv
+import logging
+import base64
 from io import BytesIO
-from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
 from datetime import date
 from decimal import Decimal
-from dateutil import parser
-import logging
+
+# Third-party libraries
 import numpy as np
 import pandas as pd
 import matplotlib
 matplotlib.use('Agg')  # Pentru a evita problemele cu GUI
 import matplotlib.pyplot as plt
 import seaborn as sns
-import base64
-from django.db.models import Q
+from dateutil import parser
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+
+# Django imports
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
+from django.contrib import messages
+from django.db import transaction
+from django.db.models import Q, Sum
+from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponse
+from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
+
+# Local application imports
+from .forms import SignupForm, LoginForm, InregistrareFirmaForm, RegistruJurnalForm
+from .models import Firma, RegistruJurnal, PlanConturi
+
 
 
 
@@ -786,60 +793,104 @@ def dashboard_firma_balanta(request):
 def export_balanta(request):
     format_ = request.GET.get('format', 'csv')
     firma = request.user
-    logger.info(f"Export balanță - Format: {format_} pentru user: {firma.email}")
+    logger.info(f"[BALANTA] Export solicitat - Format: {format_} - User: {firma.email}")
 
-    # Preluăm datele pentru balanță
-    registre = RegistruJurnal.objects.filter(firma=firma).order_by('datadoc', 'nrdoc')
-    conturi = PlanConturi.objects.all().order_by('simbol')
+    try:
+        # --------------------------------------------------------------
+        # 1. O SINGURĂ INTEROGARE PENTRU TOATE RULAJELE CONTABILE
+        # --------------------------------------------------------------
+        logger.info("[BALANTA] Pornim interogarea agregată...")
 
-    # Construim lista de date
-    date_balanta = []
-    for cont in conturi:
-        operatiuni_cont = registre.filter(Q(debit=cont.simbol) | Q(credit=cont.simbol))
-        if not operatiuni_cont.exists():
-            continue
+        agregate = (
+            RegistruJurnal.objects
+            .filter(firma=firma)
+            .values('debit', 'credit')
+            .annotate(total_suma=Sum('suma'))
+        )
 
-        rulaj_debit = sum(op.suma for op in operatiuni_cont if op.debit == cont.simbol)
-        rulaj_credit = sum(op.suma for op in operatiuni_cont if op.credit == cont.simbol)
+        logger.info(f"[BALANTA] Interogare agregată completă. {len(agregate)} rezultate brute.")
 
-        if cont.tip == 'A':
-            sold_final = rulaj_debit - rulaj_credit
-            sfd = max(sold_final, 0)
-            sfc = max(-sold_final, 0)
-        else:
-            sold_final = rulaj_credit - rulaj_debit
-            sfc = max(sold_final, 0)
-            sfd = max(-sold_final, 0)
+        # --------------------------------------------------------------
+        # 2. PRELUCRARE RULAJ PE CONT (fără queries suplimentare)
+        # --------------------------------------------------------------
+        rulaje_conturi = {}
 
-        date_balanta.append([
-            cont.simbol,
-            cont.denumire,
-            cont.tip,
-            rulaj_debit,
-            rulaj_credit,
-            sfd,
-            sfc
-        ])
+        for row in agregate:
+            suma = row["total_suma"]
+            debit = row["debit"]
+            credit = row["credit"]
 
-    if format_ == 'csv':
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="balanta.csv"'
+            if debit:
+                rulaje_conturi.setdefault(debit, {"rd": 0, "rc": 0})
+                rulaje_conturi[debit]["rd"] += suma
 
-        writer = csv.writer(response)
-        writer.writerow(['Simbol', 'Denumire', 'Tip', 'Rulaj Debit', 'Rulaj Credit', 'Sold Debit', 'Sold Credit'])
-        for row in date_balanta:
-            writer.writerow(row)
+            if credit:
+                rulaje_conturi.setdefault(credit, {"rd": 0, "rc": 0})
+                rulaje_conturi[credit]["rc"] += suma
 
-        logger.info("Export balanță CSV completat")
-        return response
+        logger.info(f"[BALANTA] Rulaje procesate pentru {len(rulaje_conturi)} conturi.")
 
-    elif format_ == 'pdf':
-        try:
+        # --------------------------------------------------------------
+        # 3. GENERARE LISTĂ FINALĂ (BALANȚĂ)
+        # --------------------------------------------------------------
+        date_balanta = []
+        conturi = PlanConturi.objects.all().order_by('simbol')
+
+        for cont in conturi:
+            if cont.simbol not in rulaje_conturi:
+                continue
+
+            rd = rulaje_conturi[cont.simbol]["rd"]
+            rc = rulaje_conturi[cont.simbol]["rc"]
+
+            # calcul sold
+            if cont.tip == 'A':
+                sold = rd - rc
+                sfd = max(sold, 0)
+                sfc = max(-sold, 0)
+            else:
+                sold = rc - rd
+                sfc = max(sold, 0)
+                sfd = max(-sold, 0)
+
+            date_balanta.append([
+                cont.simbol,
+                cont.denumire,
+                cont.tip,
+                rd,
+                rc,
+                sfd,
+                sfc
+            ])
+
+        logger.info(f"[BALANTA] Date finale pentru export: {len(date_balanta)} conturi.")
+
+        # --------------------------------------------------------------
+        # 4. EXPORT CSV
+        # --------------------------------------------------------------
+        if format_ == 'csv':
+            logger.info("[BALANTA] Export CSV început...")
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename=\"balanta.csv\"'
+
+            writer = csv.writer(response)
+            writer.writerow(['Simbol', 'Denumire', 'Tip', 'Rulaj Debit', 'Rulaj Credit', 'Sold Debit', 'Sold Credit'])
+            for row in date_balanta:
+                writer.writerow(row)
+
+            logger.info("[BALANTA] Export CSV finalizat cu succes.")
+            return response
+
+        # --------------------------------------------------------------
+        # 5. EXPORT PDF
+        # --------------------------------------------------------------
+        elif format_ == 'pdf':
+            logger.info("[BALANTA] Export PDF început...")
+
             buffer = BytesIO()
             doc = SimpleDocTemplate(buffer, pagesize=A4)
             styles = getSampleStyleSheet()
 
-            # Tabel
             data = [['Simbol', 'Denumire', 'Tip', 'Rulaj Debit', 'Rulaj Credit', 'Sold Debit', 'Sold Credit']]
             data.extend(date_balanta)
 
@@ -857,17 +908,22 @@ def export_balanta(request):
             buffer.close()
 
             response = HttpResponse(content_type='application/pdf')
-            response['Content-Disposition'] = 'attachment; filename="balanta.pdf"'
+            response['Content-Disposition'] = 'attachment; filename=\"balanta.pdf\"'
             response.write(pdf)
-            logger.info("Export balanță PDF completat")
-            return response
-        except Exception as e:
-            logger.error(f"Eroare la generare PDF balanță: {str(e)}")
-            return HttpResponse("Eroare la generare PDF", status=500)
 
-    else:
-        logger.warning(f"Format export balanță invalid: {format_}")
-        return HttpResponse("Format invalid", status=400)
+            logger.info("[BALANTA] Export PDF finalizat cu succes.")
+            return response
+
+        # --------------------------------------------------------------
+        # 6. FORMAT INVALID
+        # --------------------------------------------------------------
+        else:
+            logger.warning(f"[BALANTA] Format invalid: {format_}")
+            return HttpResponse("Format invalid", status=400)
+
+    except Exception as e:
+        logger.error(f"[BALANTA] EROARE GRAVĂ: {str(e)}", exc_info=True)
+        return HttpResponse("Eroare la export balanță", status=500)
 
 
 
@@ -984,61 +1040,90 @@ def fisa_cont_ajax(request, cont_simbol):
 
 
 class SituatieConturi:
-    """Calcul solduri finale pe baza RegistruJurnal pentru firma logată."""
-    
+    """
+    Calcul solduri finale pe baza RegistruJurnal pentru firma logată,
+    optimizat pentru performanță.
+    Se fac DOAR 2 interogări SQL (grupare pe debit și grupare pe credit).
+    """
+
     def __init__(self, firma):
         self.firma = firma
         self.solduri = self._get_solduri_finale()
 
     def _get_solduri_finale(self):
-        """Calculează soldurile pentru fiecare cont din registrul jurnal."""
+        """Calculează soldurile pentru fiecare cont folosind doar 2 query-uri."""
+        qs = RegistruJurnal.objects.filter(firma=self.firma)
+
+        # 1. Grupăm totalurile la DEBIT
+        debite = qs.values('debit').annotate(total=Sum('suma'))
+
+        # 2. Grupăm totalurile la CREDIT
+        credite = qs.values('credit').annotate(total=Sum('suma'))
+
         solduri = {}
 
-        # Preluăm toate conturile distincte
-        conturi_debit = RegistruJurnal.objects.filter(
-            firma=self.firma
-        ).values_list('debit', flat=True).distinct()
-        
-        conturi_credit = RegistruJurnal.objects.filter(
-            firma=self.firma
-        ).values_list('credit', flat=True).distinct()
+        # Preluăm sumele din debit
+        for row in debite:
+            cont = row['debit']
+            if cont and str(cont).strip():
+                cont = str(cont).strip()
+                solduri.setdefault(cont, {'debit_total': 0, 'credit_total': 0})
+                solduri[cont]['debit_total'] = float(row['total'])
 
-        # Combinăm toate conturile unice
-        toate_conturile = set(conturi_debit) | set(conturi_credit)
-        toate_conturile = {cont for cont in toate_conturile if cont and str(cont).strip()}
+        # Preluăm sumele din credit
+        for row in credite:
+            cont = row['credit']
+            if cont and str(cont).strip():
+                cont = str(cont).strip()
+                solduri.setdefault(cont, {'debit_total': 0, 'credit_total': 0})
+                solduri[cont]['credit_total'] = float(row['total'])
 
-        for simbol in toate_conturile:
-            try:
-                simbol_str = str(simbol).strip()
+        # Calculăm soldurile finale
+        for cont, s in solduri.items():
+            debit = s['debit_total']
+            credit = s['credit_total']
+            sold_final = debit - credit
 
-                # Total debit pentru acest cont
-                debit_total = RegistruJurnal.objects.filter(
-                    firma=self.firma,
-                    debit=simbol_str
-                ).aggregate(total=Sum('suma'))['total'] or 0
-
-                # Total credit pentru acest cont
-                credit_total = RegistruJurnal.objects.filter(
-                    firma=self.firma,
-                    credit=simbol_str
-                ).aggregate(total=Sum('suma'))['total'] or 0
-
-                # Calculăm soldul final (pozitiv = debit, negativ = credit)
-                sold_final = float(debit_total) - float(credit_total)
-
-                solduri[simbol_str] = {
-                    'debit_total': float(debit_total),
-                    'credit_total': float(credit_total),
-                    'sold_final': sold_final,
-                    'SD': float(debit_total) if sold_final >= 0 else 0,
-                    'SC': abs(float(credit_total)) if sold_final < 0 else 0
-                }
-                
-            except (ValueError, TypeError) as e:
-                print(f"Eroare la procesarea contului {simbol}: {e}")
-                continue
+            s['sold_final'] = sold_final
+            s['SD'] = debit if sold_final >= 0 else 0
+            s['SC'] = credit if sold_final < 0 else 0
 
         return solduri
+
+    def get_sold(self, simbol, tip_sold='SD'):
+        """
+        Returnează soldul pentru un cont și sub-conturile sale.
+        Identic cu versiunea ta originală, doar că folosește datele deja calculate.
+        """
+        tip_sold = tip_sold.upper()
+        simbol_str = str(simbol).strip()
+        total = 0
+
+        # cont exact
+        if simbol_str in self.solduri:
+            total += self.solduri[simbol_str].get(tip_sold, 0)
+
+        # sub-conturi
+        for cont, sold in self.solduri.items():
+            if cont != simbol_str and cont.startswith(simbol_str):
+                total += sold.get(tip_sold, 0)
+
+        return total
+
+    def get_toate_conturile(self):
+        """Returnează dicționarul cu toate conturile și soldurile lor."""
+        return self.solduri
+
+    def afiseaza_situatie(self):
+        """Debug: afișează situația conturilor."""
+        print("\n=== SITUAȚIA CONTURILOR (OPTIMIZAT) ===")
+        for cont in sorted(self.solduri.keys()):
+            s = self.solduri[cont]
+            print(f"Cont {cont}: Debit={s['debit_total']:.2f}, "
+                  f"Credit={s['credit_total']:.2f}, "
+                  f"Sold Final={s['sold_final']:.2f}")
+        print("=" * 50 + "\n")
+
 
     def get_sold(self, simbol, tip_sold='SD'):
         """
@@ -1519,6 +1604,9 @@ def export_bilant(request):
     format_ = request.GET.get('format', 'csv')
     firma = request.user
 
+    logger.info(f"Export bilanț - Format: {format_} pentru user: {firma.email}")
+
+    # Calculăm bilanțul
     S = SituatieConturi(firma)
     bilant = calculeaza_bilant(S)
 
@@ -1530,30 +1618,63 @@ def export_bilant(request):
         writer.writerow(['Rând', 'Valoare'])
         for k, v in bilant.items():
             writer.writerow([k, v])
+        logger.info("Export bilanț CSV completat")
         return response
 
     # --- Export PDF ---
     elif format_ == 'pdf':
         buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=A4)
+        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=20, leftMargin=20, topMargin=30, bottomMargin=30)
         styles = getSampleStyleSheet()
-        data = [['Rând', 'Valoare']] + [[k, v] for k,v in bilant.items()]
-        table = Table(data)
+
+        # Pregătim datele tabelului, ordonat alfabetic
+        data = [['Rând', 'Valoare']]
+        for k in sorted(bilant.keys()):
+            data.append([k, f"{bilant[k]:,.2f}"])  # format numeric cu separatoare
+
+        # Definim coloanele și lățimea lor
+        col_widths = [250, 100]
+
+        table = Table(data, colWidths=col_widths)
+
+        # Stil tabel
         table.setStyle(TableStyle([
-            ('BACKGROUND',(0,0),(-1,0),colors.lightblue),
-            ('TEXTCOLOR',(0,0),(-1,0),colors.white),
-            ('ALIGN',(0,0),(-1,-1),'CENTER'),
-            ('FONTNAME',(0,0),(-1,0),'Helvetica-Bold'),
-            ('GRID',(0,0),(-1,-1),0.5,colors.grey)
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#2a71d0')),
+            ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0,0), (-1,0), 11),
+
+            ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.whitesmoke, colors.HexColor('#f2f2f2')]),
+
+            ('ALIGN', (0,0), (0,-1), 'LEFT'),   # prima coloană
+            ('ALIGN', (1,0), (1,-1), 'RIGHT'),  # coloana valori
+            ('FONTSIZE', (0,1), (-1,-1), 10),
+
+            ('LEFTPADDING', (0,0), (-1,-1), 6),
+            ('RIGHTPADDING', (0,0), (-1,-1), 6),
+            ('TOPPADDING', (0,0), (-1,-1), 4),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+
+            ('GRID', (0,0), (-1,-1), 0.25, colors.grey),
         ]))
-        doc.build([Paragraph("Bilanț - Export", styles['Title']), table])
+
+        # Construim PDF-ul
+        elements = [
+            Paragraph("Bilanț - Export", styles['Title']),
+            Spacer(1, 12),
+            table
+        ]
+        doc.build(elements)
         pdf = buffer.getvalue()
         buffer.close()
+
         response = HttpResponse(pdf, content_type='application/pdf')
         response['Content-Disposition'] = 'attachment; filename="bilant.pdf"'
+        logger.info("Export bilanț PDF completat")
         return response
 
     else:
+        logger.warning(f"Format export bilanț invalid: {format_}")
         return HttpResponse("Format invalid", status=400)
 
 
@@ -2012,9 +2133,7 @@ def export_statistici_csv(request):
 # Pagina admin-dashboard + bara cautare firma dupa denumire
 @login_required(login_url='admin_login')
 def admin_dashboard(request):
-    logger.info(f"Accesat admin dashboard de către: {request.user.username}")
     if not request.user.is_superuser:
-        logger.warning(f"Acces neautorizat la admin dashboard de către: {request.user.username}")
         raise PermissionDenied
 
     query = request.GET.get('q', '')
@@ -2045,7 +2164,7 @@ def admin_login_view(request):
     if request.method == "POST":
         username = request.POST.get("username")
         parola = request.POST.get("password")
-        logger.debug(f"Încercare autentificare admin pentru: {username}")
+        
 
         user = authenticate(request, username=username, password=parola)
 
@@ -2061,7 +2180,7 @@ def admin_login_view(request):
             else:
                 return redirect("admin_dashboard")
         else:
-            logger.warning(f"Autentificare admin eșuată pentru: {username}")
+            
             mesaj = "Username sau parola incorectă!"
             messages.error(request, "Autentificare eșuată!")
 
@@ -2071,9 +2190,9 @@ def admin_login_view(request):
 # Introducere firma in baza de date
 @login_required
 def inregistrare_firma(request):
-    logger.info(f"Accesat înregistrare firmă de către admin: {request.user.username}")
+    
     if not request.user.is_superuser:
-        logger.warning(f"Acces neautorizat la înregistrare firmă de către: {request.user.username}")
+        
         raise PermissionDenied
 
     form = InregistrareFirmaForm()
@@ -2095,7 +2214,7 @@ def inregistrare_firma(request):
 #  Afisare firme si detalii
 @login_required
 def afisare_firme(request):
-    logger.info(f"Accesat afișare firme de către admin: {request.user.username}")
+    
     if not request.user.is_superuser:
         raise PermissionDenied
 
@@ -2107,7 +2226,7 @@ def afisare_firme(request):
 # Incarcare formular schimbare date 
 @login_required
 def admin_dashboard_firma(request, firma_id):
-    logger.info(f"Accesat dashboard firmă {firma_id} de către admin: {request.user.username}")
+    
     if not request.user.is_superuser:
         raise PermissionDenied
 
@@ -2116,7 +2235,7 @@ def admin_dashboard_firma(request, firma_id):
 
     if request.method == 'POST' and form.is_valid():
         form.save()
-        logger.info(f"Firmă {firma_id} modificată cu succes de către admin: {request.user.username}")
+        
         messages.success(request, f"Firma '{firma.denumire}' a fost modificată cu succes!")
         return redirect('admin_dashboard_firma', firma_id=firma.id)
     elif request.method == 'POST':
@@ -2130,7 +2249,7 @@ def admin_dashboard_firma(request, firma_id):
 # Stergere firma  
 @login_required
 def sterge_firma(request, firma_id):
-    logger.info(f"Încercare ștergere firmă {firma_id} de către admin: {request.user.username}")
+    
     if not request.user.is_superuser:
         raise PermissionDenied
 
@@ -2139,7 +2258,7 @@ def sterge_firma(request, firma_id):
     if request.method == 'POST':
         nume_firma = firma.denumire
         firma.delete()
-        logger.info(f"Firmă {firma_id} ('{nume_firma}') ștearsă cu succes de către admin: {request.user.username}")
+        
         messages.success(request, f"Firma '{nume_firma}' a fost ștearsă cu succes!")
         return redirect('afisare_firme')  # redirect la lista firmelor
 
@@ -2147,8 +2266,8 @@ def sterge_firma(request, firma_id):
 
 # Logout pentru ADMIN
 def custom_logout_admin(request):
-    username = request.user.username if request.user.is_authenticated else "Necunoscut"
-    logger.info(f"Logout admin: {username}")
+    if request.user.is_authenticated:
+        logger.info(f"Admin delogat: {request.user.email}")
     logout(request)
     messages.info(request, "Te-ai delogat cu succes din panoul de administrare!")
     return redirect('admin_login')
@@ -2156,8 +2275,8 @@ def custom_logout_admin(request):
 
 # Logout pentru utilizator (firmă)
 def custom_logout(request):
-    email = request.user.email if request.user.is_authenticated else "Necunoscut"
-    logger.info(f"Logout user: {email}")
+    if request.user.is_authenticated:
+        logger.info(f"Firma delogată: {request.user.email}")
     logout(request)
     messages.info(request, "Te-ai delogat cu succes din contul firmei!")
     return redirect('login')

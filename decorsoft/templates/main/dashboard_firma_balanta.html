@@ -514,6 +514,226 @@
             text-transform: uppercase;
         }
 
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--secondary-dark);
+            border-radius: 20px;
+            padding: 2.5rem;
+            min-width: 500px;
+            max-width: 90vw;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-lg);
+            animation: modalSlideIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            background: linear-gradient(45deg, var(--cream), var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--cream);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: var(--transition);
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 46, 46, 0.2);
+            color: var(--accent-red);
+        }
+
+        .modal-body {
+            margin-bottom: 2rem;
+        }
+
+        .modal-description {
+            color: var(--cream);
+            opacity: 0.8;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .export-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .export-option {
+            background: var(--primary-dark);
+            border: 2px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .export-option:hover {
+            border-color: var(--accent-red);
+            transform: translateY(-3px);
+        }
+
+        .export-option.selected {
+            border-color: var(--accent-red);
+            background: linear-gradient(135deg, rgba(255, 46, 46, 0.1) 0%, rgba(255, 107, 107, 0.05) 100%);
+        }
+
+        .export-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--accent-red);
+        }
+
+        .export-option-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--cream);
+        }
+
+        .export-option-desc {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            color: var(--cream);
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .btn-secondary {
+            background: var(--glass);
+            color: var(--cream);
+            border: 1px solid var(--glass-border);
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: var(--gradient);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-primary:disabled:hover::before {
+            left: -100%;
+        }
+
+        /* Loading Animation */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes modalSlideIn {
+            from { 
+                opacity: 0;
+                transform: translate(-50%, -60%) scale(0.9);
+            }
+            to { 
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
         /* Responsive */
         @media (max-width: 1200px) {
             .dashboard-container {
@@ -554,6 +774,15 @@
             .table-actions {
                 width: 100%;
                 justify-content: center;
+            }
+
+            .modal-container {
+                min-width: 90%;
+                padding: 1.5rem;
+            }
+
+            .export-options {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -636,7 +865,7 @@
                 Reîmprospătează Datele
             </button>
             <div class="export-dropdown">
-                <button class="export-button">
+                <button class="export-button" id="openExportModal">
                     <i class="fas fa-download"></i>
                     Export Balanță
                     <i class="fas fa-caret-down"></i>
@@ -738,6 +967,54 @@
         </div>
     </div>
 
+    <!-- Modal pentru Export -->
+    <div class="modal-overlay" id="exportModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2 class="modal-title">Export Balanță</h2>
+                <button class="modal-close" id="closeExportModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-description">
+                    Alege formatul pentru exportul balanței contabile. Fișierul va conține toate datele afișate în tabel.
+                </p>
+                
+                <div class="export-options">
+                    <div class="export-option" data-format="csv">
+                        <div class="export-icon">
+                            <i class="fas fa-file-csv"></i>
+                        </div>
+                        <div class="export-option-title">CSV Format</div>
+                        <div class="export-option-desc">
+                            Ideal pentru analiză în Excel sau alte aplicații de calcul
+                        </div>
+                    </div>
+                    
+                    <div class="export-option" data-format="pdf">
+                        <div class="export-icon">
+                            <i class="fas fa-file-pdf"></i>
+                        </div>
+                        <div class="export-option-title">PDF Format</div>
+                        <div class="export-option-desc">
+                            Perfect pentru tipărire și arhivare documente oficiale
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelExport">
+                    Anulează
+                </button>
+                <button class="btn-primary" id="confirmExport" disabled>
+                    <span class="loading-spinner" style="display: none;"></span>
+                    <span class="btn-text">Export Balanță</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const refreshBtn = document.getElementById('refreshDashboard');
@@ -745,19 +1022,105 @@
             const exportPDFBtn = document.getElementById('exportPDF');
             const expandConturiBtn = document.getElementById('expandAllConturi');
             const collapseConturiBtn = document.getElementById('collapseAllConturi');
+            
+            // Elemente modal export
+            const exportModal = document.getElementById('exportModal');
+            const openExportModalBtn = document.getElementById('openExportModal');
+            const closeExportModalBtn = document.getElementById('closeExportModal');
+            const cancelExportBtn = document.getElementById('cancelExport');
+            const confirmExportBtn = document.getElementById('confirmExport');
+            const exportOptions = document.querySelectorAll('.export-option');
+            const loadingSpinner = confirmExportBtn.querySelector('.loading-spinner');
+            const btnText = confirmExportBtn.querySelector('.btn-text');
+
+            let selectedFormat = null;
+
+            // Deschide modalul de export
+            openExportModalBtn.addEventListener('click', function() {
+                exportModal.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            });
+
+            // Închide modalul de export
+            function closeExportModal() {
+                exportModal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                resetExportModal();
+            }
+
+            closeExportModalBtn.addEventListener('click', closeExportModal);
+            cancelExportBtn.addEventListener('click', closeExportModal);
+
+            // Închide modalul la click în afara conținutului
+            exportModal.addEventListener('click', function(e) {
+                if (e.target === exportModal) {
+                    closeExportModal();
+                }
+            });
+
+            // Selectare format export
+            exportOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Elimină selecția precedentă
+                    exportOptions.forEach(opt => opt.classList.remove('selected'));
+                    
+                    // Adaugă selecția curentă
+                    this.classList.add('selected');
+                    selectedFormat = this.getAttribute('data-format');
+                    
+                    // Activează butonul de export
+                    confirmExportBtn.disabled = false;
+                    btnText.textContent = `Export ${selectedFormat.toUpperCase()}`;
+                });
+            });
+
+            // Confirmare export
+            confirmExportBtn.addEventListener('click', function() {
+                if (!selectedFormat) return;
+
+                // Afișează loading
+                loadingSpinner.style.display = 'inline-block';
+                btnText.textContent = 'Se generează...';
+                confirmExportBtn.disabled = true;
+
+                // Simulează generarea fișierului (în producție, aceasta va fi o cerere reală)
+                setTimeout(() => {
+                    // Redirecționează către URL-ul de export corespunzător
+                    window.location.href = `{% url 'export_balanta' %}?format=${selectedFormat}`;
+                    
+                    // Resetează butonul (în caz că redirect-ul eșuează)
+                    setTimeout(() => {
+                        resetExportButton();
+                        closeExportModal();
+                    }, 2000);
+                }, 1500);
+            });
+
+            // Funcții de resetare
+            function resetExportModal() {
+                exportOptions.forEach(opt => opt.classList.remove('selected'));
+                selectedFormat = null;
+                resetExportButton();
+            }
+
+            function resetExportButton() {
+                loadingSpinner.style.display = 'none';
+                btnText.textContent = 'Export Balanță';
+                confirmExportBtn.disabled = true;
+            }
 
             // Reîmprospătează dashboard-ul
             refreshBtn.addEventListener('click', function() {
                 location.reload();
             });
 
-            // Export CSV
+            // Export direct CSV (pentru meniul dropdown)
             exportCSVBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 window.location.href = "{% url 'export_balanta' %}?format=csv";
             });
 
-            // Export PDF
+            // Export direct PDF (pentru meniul dropdown)
             exportPDFBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 window.location.href = "{% url 'export_balanta' %}?format=pdf";

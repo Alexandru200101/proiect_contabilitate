@@ -315,11 +315,11 @@
             <div class="header">
                 <div>
                     <h1>Lista Firmelor</h1>
-                    <p>Bun venit, <strong>{{ user.username }}</strong>!</p>
+                    <p>Bun venit, <strong>{{ user.denumire }}</strong>!</p>
                 </div>
                 <div class="user-info">
                     <div class="user-avatar">
-                        {{ user.username|first|upper }}
+                        {{ user.denumire|first|upper }}
                     </div>
                     <span>{{ user.email }}</span>
                     <a href="{% url 'admin_logout' %}" class="logout-btn">
@@ -359,6 +359,7 @@
                                 <br><small style="color: rgba(245, 245, 240, 0.6);">CUI: {{ firma.cui }}</small>
                                 {% endif %}
                             </td>
+                            
                             <td data-label="Email">
                                 {% if firma.email %}
                                 <a href="mailto:{{ firma.email }}" style="color: var(--red); text-decoration: none;">

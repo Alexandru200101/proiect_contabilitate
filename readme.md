@@ -1,17 +1,85 @@
-# Contabilitate Django
+ Contabilitate Django
 
-Acesta este un proiect Django pentru gestionarea contabilității firmelor, cu funcționalități precum jurnal, balanță, rapoarte și gestionare conturi.
+Aplicație web pentru gestionarea contabilității firmelor, construită în Django.
+Proiectul oferă funcționalități precum:
 
-Proiectul folosește **MySQL** ca bază de date și este containerizat cu **Docker** și **Docker Compose**.
+- gestionarea jurnalului contabil
 
----
+- balanță contabilă
 
-## Tehnologii folosite
+- registru financiar
 
-- Python 3.12
-- Django 5.x
-- MySQL 8.x
-- Docker & Docker Compose
-- ReportLab (generare PDF)
-- Pandas (opțional pentru rapoarte)
-- Gunicorn (pentru producție)
+- fișe de cont
+
+- rapoarte PDF
+
+- administrare conturi și firme
+
+- sistem de autentificare și roluri
+
+Funcționalități principale:
+    Modul Jurnal:
+
+- introducere operațiuni contabile (debit/credit)
+
+- filtrare după cont, firmă
+
+- export PDF / CSV
+
+validare conturi și balanță în timp real
+
+    Modul Balanță:
+
+- generare balanță sintetică/analitică
+
+- totaluri automate (debit, credit, sold)
+
+- export PDF
+
+    Gestionare conturi
+
+- plan de conturi complet
+
+- adăugare / editare / dezactivare conturi
+
+- tipuri de conturi (activ, pasiv, mixt)
+
+    Rapoarte PDF
+
+- generare PDF folosind ReportLab
+
+- antet firmă, dată, număr pagină
+
+- stilizare profesională
+
+    Autentificare & Roluri:
+
+- administratori
+
+- firma
+
+login/logout, permisiuni Django
+
+    Statistici:
+
+- grafice
+
+- indicatori financiari(modelul altman)
+
+    Tehnologii folosite:
+
+Python 3.12
+
+Django 5.x
+
+MySQL 8.x (prod & dev)
+
+Docker + Docker Compose
+
+Gunicorn (server WSGI producție)
+
+Nginx (opțional pentru deploy)
+
+ReportLab (rapoarte PDF)
+
+Pandas (rapoarte XLSX)
