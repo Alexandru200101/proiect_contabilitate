@@ -83,3 +83,15 @@ Nginx (opțional pentru deploy)
 ReportLab (rapoarte PDF)
 
 Pandas (rapoarte XLSX)
+
+
+Exemplu pentru .env:
+
+DEBUG=True
+SECRET_KEY=cheie_sigura
+DB_NAME=db_name
+DB_USER=root
+DB_PASSWORD=parola_db
+DB_HOST=127.0.0.1       
+DB_PORT=3306
+
