@@ -154,7 +154,6 @@ SESSION_SAVE_EVERY_REQUEST = True  # reînnoiește durata la fiecare cerere
 
 
 # settings.py
-
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -177,15 +176,18 @@ LOGGING = {
     "loggers": {
         "django": {
             "handlers": ["console"],
-            "level": "INFO",  # schimbă în DEBUG dacă vrei mai multe detalii
+            "level": "INFO",
             "propagate": True,
         },
-        # logger-ul tău din view
-        "decorsoft.views": {  # pune numele aplicației tale aici
+        # logger pentru toate modulele din decorsoft
+        "decorsoft": {
             "handlers": ["console"],
             "level": "DEBUG",
-            "propagate": False,
+            "propagate": True,  
         },
     },
+    "root": {
+        "handlers": ["console"],
+        "level": "WARNING",
+    },
 }
-

@@ -244,11 +244,11 @@
             <div class="header">
                 <div>
                     <h1>Înregistrare Firmă Nouă</h1>
-                    <p>Bun venit, <strong>{{ user.username }}</strong>!</p>
+                    <p>Bun venit, <strong>{{ user.denumire }}</strong>!</p>
                 </div>
                 <div class="user-info">
                     <div class="user-avatar">
-                        {{ user.username|first|upper }}
+                        {{ user.denumire|first|upper }}
                     </div>
                     <span>{{ user.email }}</span>
                     <a href="{% url 'admin_logout' %}" class="logout-btn">

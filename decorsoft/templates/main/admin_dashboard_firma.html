@@ -13,8 +13,6 @@
             --rosu-deschis: #f44336;
             --crem: #f5f5dc;
             --crem-deschis: #f8f8f0;
-            --verde: #2e7d32;
-            --albastru: #1565c0;
         }
 
         * {
@@ -73,90 +71,30 @@
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
 
-        .section-title {
-            color: var(--rosu);
-            font-size: 1.5em;
-            margin: 30px 0 20px 0;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--rosu);
-        }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
         .info-card {
             background-color: var(--negru-deschis);
             padding: 25px;
             border-radius: 10px;
+            margin-bottom: 30px;
             border-left: 4px solid var(--rosu);
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            transition: transform 0.3s ease;
-        }
-
-        .info-card:hover {
-            transform: translateY(-5px);
         }
 
         .info-item {
             margin-bottom: 15px;
             display: flex;
-            align-items: flex-start;
+            align-items: center;
         }
 
         .info-item strong {
             color: var(--rosu);
-            min-width: 140px;
+            min-width: 120px;
             font-size: 1.1em;
-            flex-shrink: 0;
         }
 
         .info-item span {
             color: var(--crem-deschis);
             font-size: 1.1em;
-            word-break: break-word;
-        }
-
-        .empty-field {
-            color: #888 !important;
-            font-style: italic;
-        }
-
-        .address-card {
-            grid-column: 1 / -1;
-        }
-
-        .address-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
-        }
-
-        .address-line {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .address-label {
-            color: var(--rosu);
-            font-weight: 600;
-            font-size: 0.9em;
-        }
-
-        .address-value {
-            color: var(--crem-deschis);
-            font-size: 1.1em;
-            padding: 8px 12px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 5px;
-            min-height: 40px;
-            display: flex;
-            align-items: center;
         }
 
         .action-buttons {
@@ -181,12 +119,12 @@
         }
 
         .action-btn.green {
-            background-color: var(--verde);
+            background-color: #2e7d32;
             color: var(--crem);
         }
 
         .action-btn.blue {
-            background-color: var(--albastru);
+            background-color: #1565c0;
             color: var(--crem);
         }
 
@@ -212,14 +150,8 @@
             border: 2px solid var(--rosu);
         }
 
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 25px;
-        }
-
-        .form-group {
+        #edit-form p {
+            margin-bottom: 20px;
             display: flex;
             flex-direction: column;
         }
@@ -256,7 +188,7 @@
         }
 
         .message.success {
-            background-color: var(--verde);
+            background-color: #2e7d32;
             color: var(--crem);
             border-left: 4px solid #4caf50;
         }
@@ -272,18 +204,6 @@
             height: 2px;
             background: linear-gradient(90deg, var(--rosu), transparent);
             margin: 30px 0;
-        }
-
-        .capital-badge {
-            background: linear-gradient(135deg, var(--verde), #4caf50);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 1.1em;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
         }
 
         @media (max-width: 768px) {
@@ -304,18 +224,6 @@
             .action-buttons {
                 flex-direction: column;
             }
-            
-            .info-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .address-details {
-                grid-template-columns: 1fr;
-            }
         }
     </style>
 </head>
@@ -335,133 +243,38 @@
                 {% endfor %}
             {% endif %}
 
-            <!-- Informații generale -->
-            <h2 class="section-title">Informații Generale</h2>
-            <div class="info-grid">
-                <div class="info-card">
-                    <div class="info-item">
-                        <strong>CUI:</strong>
-                        <span>{{ firma.cui|default:"Nespecificat" }}</span>
-                    </div>
-                    <div class="info-item">
-                        <strong>Email:</strong>
-                        <span>{{ firma.email|default:"Nespecificat" }}</span>
-                    </div>
-                    <div class="info-item">
-                        <strong>Telefon:</strong>
-                        <span>{{ firma.telefon|default:"Nespecificat" }}</span>
-                    </div>
-                    {% if firma.cap_social %}
-                    <div class="info-item">
-                        <strong>Capital Social:</strong>
-                        <span class="capital-badge">
-                            <i class="fas fa-coins"></i>
-                            {{ firma.cap_social }} RON
-                        </span>
-                    </div>
-                    {% endif %}
+            <!-- Detalii firmă -->
+            <div class="info-card">
+                <div class="info-item">
+                    <strong>CUI:</strong>
+                    <span>{{ firma.cui }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Adresă:</strong>
+                    <span>{{ firma.adresa }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Email:</strong>
+                    <span>{{ firma.email }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Telefon:</strong>
+                    <span>{{ firma.telefon }}</span>
                 </div>
             </div>
-
-            <!-- Detalii Adresă -->
-            <h2 class="section-title">Detalii Adresă</h2>
-            <div class="info-grid">
-                <div class="info-card address-card">
-                    <div class="address-details">
-                        <div class="address-line">
-                            <div class="address-label">Stradă</div>
-                            <div class="address-value {% if not firma.strada %}empty-field{% endif %}">
-                                {{ firma.strada|default:"Nespecificat" }}
-                            </div>
-                        </div>
-                        <div class="address-line">
-                            <div class="address-label">Număr</div>
-                            <div class="address-value {% if not firma.numar %}empty-field{% endif %}">
-                                {{ firma.numar|default:"Nespecificat" }}
-                            </div>
-                        </div>
-                        <div class="address-line">
-                            <div class="address-label">Bloc</div>
-                            <div class="address-value {% if not firma.bloc %}empty-field{% endif %}">
-                                {{ firma.bloc|default:"Nespecificat" }}
-                            </div>
-                        </div>
-                        <div class="address-line">
-                            <div class="address-label">Scară</div>
-                            <div class="address-value {% if not firma.scara %}empty-field{% endif %}">
-                                {{ firma.scara|default:"Nespecificat" }}
-                            </div>
-                        </div>
-                        <div class="address-line">
-                            <div class="address-label">Apartament</div>
-                            <div class="address-value {% if not firma.ap %}empty-field{% endif %}">
-                                {{ firma.ap|default:"Nespecificat" }}
-                            </div>
-                        </div>
-                        <div class="address-line">
-                            <div class="address-label">Localitate</div>
-                            <div class="address-value {% if not firma.localitate %}empty-field{% endif %}">
-                                {{ firma.localitate|default:"Nespecificat" }}
-                            </div>
-                        </div>
-                        <div class="address-line">
-                            <div class="address-label">Județ</div>
-                            <div class="address-value {% if not firma.judet %}empty-field{% endif %}">
-                                {{ firma.judet|default:"Nespecificat" }}
-                            </div>
-                        </div>
-                        <div class="address-line">
-                            <div class="address-label">Sector</div>
-                            <div class="address-value {% if not firma.sector %}empty-field{% endif %}">
-                                {{ firma.sector|default:"Nespecificat" }}
-                            </div>
-                        </div>
-                        <div class="address-line">
-                            <div class="address-label">Cod Poștal</div>
-                            <div class="address-value {% if not firma.codpostal %}empty-field{% endif %}">
-                                {{ firma.codpostal|default:"Nespecificat" }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Adresă completă formatată -->
-            {% if firma.strada or firma.localitate %}
-            <h2 class="section-title">Adresă Completă</h2>
-            <div class="info-grid">
-                <div class="info-card">
-                    <div class="info-item">
-                        <strong>Adresă:</strong>
-                        <span>
-                            {% if firma.strada %}Str. {{ firma.strada }}{% endif %}
-                            {% if firma.numar %}Nr. {{ firma.numar }}{% endif %}
-                            {% if firma.bloc %}Bl. {{ firma.bloc }}{% endif %}
-                            {% if firma.scara %}Sc. {{ firma.scara }}{% endif %}
-                            {% if firma.ap %}Ap. {{ firma.ap }}{% endif %}
-                            {% if firma.localitate %}, {{ firma.localitate }}{% endif %}
-                            {% if firma.sector %}, Sector {{ firma.sector }}{% endif %}
-                            {% if firma.judet %}, {{ firma.judet }}{% endif %}
-                            {% if firma.codpostal %}, {{ firma.codpostal }}{% endif %}
-                            {% if not firma.strada and not firma.localitate %}Nespecificat{% endif %}
-                        </span>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
 
             <hr>
 
             <div class="action-buttons">
                 <!-- Buton care afișează formularul -->
-                <button id="edit-btn" class="action-btn green">✏️ Editează Detaliile Firmei</button>
+                <button id="edit-btn" class="action-btn green">✏️ Editează</button>
 
                 <!-- Buton de ștergere -->
                 <form action="{% url 'sterge_firma' firma.id %}" method="post" style="display:inline;">
                     {% csrf_token %}
                     <button type="submit" class="action-btn red"
-                        onclick="return confirm('Ești sigur că vrei să ștergi această firmă? Această acțiune este permanentă.');">
-                        🗑️ Șterge Firmă
+                        onclick="return confirm('Ești sigur că vrei să ștergi această firmă?');">
+                        🗑️ Șterge
                     </button>
                 </form>
             </div>
@@ -469,118 +282,22 @@
             <!-- Formularul de modificare (ascuns inițial) -->
             <form id="edit-form" method="post" style="display:none;">
                 {% csrf_token %}
-                
-                <h2 class="section-title">Modifică Informațiile Firmei</h2>
-                
-                <div class="form-grid">
-                    <!-- Informații generale -->
-                    <div class="form-group">
-                        <label for="id_denumire">Denumire Firmă:</label>
-                        {{ form.denumire }}
-                    </div>
-                    <div class="form-group">
-                        <label for="id_cui">CUI:</label>
-                        {{ form.cui }}
-                    </div>
-                    <div class="form-group">
-                        <label for="id_email">Email:</label>
-                        {{ form.email }}
-                    </div>
-                    <div class="form-group">
-                        <label for="id_telefon">Telefon:</label>
-                        {{ form.telefon }}
-                    </div>
-                    <div class="form-group">
-                        <label for="id_cap_social">Capital Social (RON):</label>
-                        {{ form.cap_social }}
-                    </div>
-                </div>
-
-                <h3 class="section-title">Detalii Adresă</h3>
-                
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="id_strada">Stradă:</label>
-                        {{ form.strada }}
-                    </div>
-                    <div class="form-group">
-                        <label for="id_numar">Număr:</label>
-                        {{ form.numar }}
-                    </div>
-                    <div class="form-group">
-                        <label for="id_bloc">Bloc:</label>
-                        {{ form.bloc }}
-                    </div>
-                    <div class="form-group">
-                        <label for="id_scara">Scară:</label>
-                        {{ form.scara }}
-                    </div>
-                    <div class="form-group">
-                        <label for="id_ap">Apartament:</label>
-                        {{ form.ap }}
-                    </div>
-                    <div class="form-group">
-                        <label for="id_localitate">Localitate:</label>
-                        {{ form.localitate }}
-                    </div>
-                    <div class="form-group">
-                        <label for="id_judet">Județ:</label>
-                        {{ form.judet }}
-                    </div>
-                    <div class="form-group">
-                        <label for="id_sector">Sector:</label>
-                        {{ form.sector }}
-                    </div>
-                    <div class="form-group">
-                        <label for="id_codpostal">Cod Poștal:</label>
-                        {{ form.codpostal }}
-                    </div>
-                </div>
-
-                <div class="action-buttons">
-                    <button type="submit" class="action-btn blue">💾 Salvează Modificările</button>
-                    <button type="button" id="cancel-edit" class="action-btn red">❌ Anulează</button>
-                </div>
+                {{ form.as_p }}
+                <button type="submit" class="action-btn blue">💾 Salvează modificările</button>
             </form>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const editBtn = document.getElementById('edit-btn');
-            const cancelBtn = document.getElementById('cancel-edit');
+            const btn = document.getElementById('edit-btn');
             const form = document.getElementById('edit-form');
 
-            // Afișează formularul la click pe butonul de editare
-            editBtn.addEventListener('click', function() {
+            btn.addEventListener('click', function() {
                 form.style.display = 'block';
-                editBtn.style.display = 'none';
-                // Scroll la formular
-                form.scrollIntoView({ behavior: 'smooth' });
+                btn.style.display = 'none';
             });
-
-            // Ascunde formularul la click pe butonul de anulare
-            cancelBtn.addEventListener('click', function() {
-                form.style.display = 'none';
-                editBtn.style.display = 'flex';
-            });
-
-            // Opțional: Validează capital social să fie număr pozitiv
-            const capSocialField = document.getElementById('id_cap_social');
-            if (capSocialField) {
-                capSocialField.addEventListener('blur', function() {
-                    const value = parseFloat(this.value);
-                    if (value < 0) {
-                        alert('Capitalul social trebuie să fie un număr pozitiv');
-                        this.value = '';
-                        this.focus();
-                    }
-                });
-            }
         });
     </script>
-
-    <!-- Font Awesome pentru iconițe -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </body>
 </html>
