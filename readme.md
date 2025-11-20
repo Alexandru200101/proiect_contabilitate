@@ -93,5 +93,9 @@ DB_NAME=db_name
 DB_USER=root
 DB_PASSWORD=parola_db
 DB_HOST=127.0.0.1       
-DB_PORT=3306
+DB_PORT=3306 
+
+Populare baza de date cu plan conturi
+In terminal : python populeaza_plan_conturi.py
+
 
